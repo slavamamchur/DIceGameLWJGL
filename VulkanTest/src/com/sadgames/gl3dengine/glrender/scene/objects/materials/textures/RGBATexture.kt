@@ -1,0 +1,20 @@
+package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
+
+import org.lwjgl.opengl.GL30.*
+
+open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int = 0): AbstractFBOTexture(width, height) {
+
+    @Throws(UnsupportedOperationException::class) override fun loadTexture(bitmap: BitmapWrapper?) {
+        glTexImage2D(textureType,
+                0,
+                GL_RGBA,
+                width,
+                height,
+                0,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                0)
+    }
+
+    override fun attach() = glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachmentNum, GL_TEXTURE_2D, textureId, 0)
+}

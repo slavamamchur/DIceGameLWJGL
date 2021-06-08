@@ -1,0 +1,163 @@
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: "com.github.johnrengelman.shadow"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':WebServer')
+
+    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+
+	implementation "org.lwjgl:lwjgl"
+	implementation "org.lwjgl:lwjgl-assimp"
+	implementation "org.lwjgl:lwjgl-bgfx"
+	implementation "org.lwjgl:lwjgl-egl"
+	implementation "org.lwjgl:lwjgl-glfw"
+	implementation "org.lwjgl:lwjgl-jawt"
+	implementation "org.lwjgl:lwjgl-jemalloc"
+	implementation "org.lwjgl:lwjgl-libdivide"
+	implementation "org.lwjgl:lwjgl-llvm"
+	implementation "org.lwjgl:lwjgl-lz4"
+	implementation "org.lwjgl:lwjgl-meow"
+	implementation "org.lwjgl:lwjgl-meshoptimizer"
+	implementation "org.lwjgl:lwjgl-nanovg"
+	implementation "org.lwjgl:lwjgl-nfd"
+	implementation "org.lwjgl:lwjgl-nuklear"
+	implementation "org.lwjgl:lwjgl-odbc"
+	implementation "org.lwjgl:lwjgl-openal"
+	implementation "org.lwjgl:lwjgl-opencl"
+	implementation "org.lwjgl:lwjgl-opengl"
+	implementation "org.lwjgl:lwjgl-opengles"
+	implementation "org.lwjgl:lwjgl-openvr"
+	implementation "org.lwjgl:lwjgl-opus"
+	implementation "org.lwjgl:lwjgl-par"
+	implementation "org.lwjgl:lwjgl-remotery"
+	implementation "org.lwjgl:lwjgl-rpmalloc"
+	implementation "org.lwjgl:lwjgl-shaderc"
+	implementation "org.lwjgl:lwjgl-spvc"
+	implementation "org.lwjgl:lwjgl-sse"
+	implementation "org.lwjgl:lwjgl-stb"
+	implementation "org.lwjgl:lwjgl-tinyexr"
+	implementation "org.lwjgl:lwjgl-tinyfd"
+	implementation "org.lwjgl:lwjgl-tootle"
+	implementation "org.lwjgl:lwjgl-vma"
+	implementation "org.lwjgl:lwjgl-vulkan"
+	implementation "org.lwjgl:lwjgl-xxhash"
+	implementation "org.lwjgl:lwjgl-yoga"
+	implementation "org.lwjgl:lwjgl-zstd"
+
+	runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-bgfx::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-jemalloc::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-libdivide::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-llvm::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-lz4::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-meow::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-meshoptimizer::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-nanovg::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-nfd::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-nuklear::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-openal::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-opengles::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-openvr::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-opus::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-par::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-remotery::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-rpmalloc::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-shaderc::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-spvc::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-sse::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-tinyexr::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-tinyfd::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-tootle::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-vma::$lwjglNatives"
+	if (lwjglNatives == "natives-macos")
+		runtimeOnly "org.lwjgl:lwjgl-vulkan::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-xxhash::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-yoga::$lwjglNatives"
+	runtimeOnly "org.lwjgl:lwjgl-zstd::$lwjglNatives"
+
+	implementation "org.joml:joml:${jomlVersion}"
+	implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4jVersion}"
+	implementation "com.code-disaster.steamworks4j:steamworks4j-server:${steamworks4j_serverVersion}"
+	implementation "org.lwjglx:lwjgl3-awt:${lwjgl3_awtVersion}"
+	implementation "org.liquidengine:legui:${legui_version}"
+
+    implementation 'org.luaj:luaj-jse:3.0.1'
+    implementation 'cz.advel.jbullet:jbullet:20101010-1'
+	//implementation 'org.apache.commons:commons-configuration2:2.7'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.7.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.4'
+    implementation 'com.google.guava:guava:19.0'
+    implementation 'javax.servlet:javax.servlet-api:3.0.1'
+    implementation 'org.xerial:sqlite-jdbc:3.8.11.2'
+	implementation 'com.google.gwt:gwt-user:2.7.0'
+	implementation 'org.imgscalr:imgscalr-lib:4.2'
+	implementation 'com.badlogicgames.jlayer:jlayer:1.0.1-gdx'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7"
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+sourceSets.main.java.srcDirs = [ "src/" ]
+mainClassName = "com.sadgames.vulkan.DesktopLauncher"
+project.ext.mainClassName = "com.sadgames.vulkan.DesktopLauncher"
+project.ext.assetsDir = new File("src/main/assets")
+
+shadowJar {
+    from files(project.ext.assetsDir)
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.MF'
+    baseName = 'diceGameVulkan'
+}
+
+task debug(dependsOn: classes, type: JavaExec) {
+    main = project.ext.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.ext.assetsDir
+    ignoreExitValue = true
+    debug = true
+}
+
+task dist(type: Jar) {
+    from files(sourceSets.main.output.classesDirs)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.compile.collect {zipTree(it)}}
+    from files(project.ext.assetsDir)
+
+    manifest {
+        attributes 'Main-Class': project.ext.mainClassName,
+                'Class-Path': configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
+    }
+}
+
+dist.dependsOn classes
