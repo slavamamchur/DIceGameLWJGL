@@ -183,7 +183,11 @@ public class Gdx2DPixmap {
 	public int getPixel (int x, int y) {
 		//byte[] pixels = new byte[pixelPtr.capacity()];
 		//pixelPtr.get(pixels);
-		return pixelPtr.getInt(y * width * 4 + x * 4); // todo: convert???
+
+		int pixel = pixelPtr.getInt(y * width * 4 + x * 4);
+		pixel = ColorUtils.argb((pixel >> 24) & 0xFF,  pixel & 0xFF, (pixel >> 8) & 0xFF, (pixel >> 16) & 0xFF);
+
+		return pixel;
 	}
 
 	/*public void drawLine (int x, int y, int x2, int y2, int color) {

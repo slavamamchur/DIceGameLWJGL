@@ -73,7 +73,7 @@ object DesktopRestApiWrapper: RestApiInterface {
         val map = restClient.getGameMap(textureResName)
 
         try {
-             if (map?.id?.isEmpty() == false)
+             if (map.id?.isEmpty() == false)
                 if (isRelief)
                     internalSavePicture(map, "rel_", "Relief map is empty.")
                 else
@@ -87,16 +87,12 @@ object DesktopRestApiWrapper: RestApiInterface {
         val name = "$namePrefix${map.id}"
 
         if (!isBitmapCached(name, map.lastUsedDate)) {
-            val mapArray = restClient.getBinaryData(RestClient.getMapImagePostfix(map.id, "rel_" != namePrefix)) //todo: call async (for kotlin only)
-
-            if (mapArray == null)
-                throw NoSuchFieldException(errorMessage)
-            else
-                try {
-                    saveBitmap2DB(mapArray, name, map.lastUsedDate)
-                } catch (e: Exception) {
-                    throw RuntimeException(errorMessage)
-                }
+            try {
+                val mapArray = restClient.getBinaryData(RestClient.getMapImagePostfix(map.id, "rel_" != namePrefix)) //todo: call async (for kotlin only)
+                saveBitmap2DB(mapArray, name, map.lastUsedDate)
+            } catch (e: Exception) {
+                throw RuntimeException(errorMessage)
+            }
         }
     }
 }

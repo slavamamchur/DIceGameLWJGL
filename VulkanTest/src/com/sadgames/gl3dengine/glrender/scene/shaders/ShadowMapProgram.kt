@@ -20,9 +20,9 @@ open class ShadowMapProgram : VBOShaderProgram() {
         params[IS_OBJECT_GROUP_PARAM_NAME]?.value = isObjectGroup.toInt()
 
         if (isObjectGroup) {
-            ///renderable.modelMatrix[13] -= 0.03530573f
+            renderable.modelMatrix[13] -= 0.03530573f
             params[MODEL_MATRIX_PARAM_NAME]?.value = renderable.modelMatrix
-            ///renderable.modelMatrix[13] += 0.03530573f
+            renderable.modelMatrix[13] += 0.03530573f
         }
     }
 

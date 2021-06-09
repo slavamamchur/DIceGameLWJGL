@@ -27,12 +27,12 @@ class RefractionMapRenderProgram : VBOShaderProgram() {
         params[IS_OBJECT_GROUP_PARAM_NAME]?.value = isObjectGroup.toInt()
         params[IS_OBJECT_GROUPF_PARAM_NAME]?.value = isObjectGroup.toInt()
 
-        /*if (isObjectGroup) {
+        if (isObjectGroup) {
             renderable.modelMatrix[13] -= 0.03530573f
             params[MODEL_MATRIX_PARAM_NAME]?.value = renderable.modelMatrix
             renderable.modelMatrix[13] += 0.03530573f
         }
-        else*/
+        else
             params[MODEL_MATRIX_PARAM_NAME]?.value = renderable.modelMatrix
 
         params[IS_LIGHT_SOURCE_PARAM_NAME]?.value = renderable.isLightSource.toInt()

@@ -17,11 +17,11 @@ import java.nio.ByteBuffer
 import java.sql.SQLException
 
 class GameMap(program: VBOShaderProgram, private val gameEntity: GameEntity?) :
-        TopographicMapObject(program, /*"rel_" + */gameEntity?.getMapId()),
+        TopographicMapObject(program, "rel_" + gameEntity?.getMapId()),
         LinkedRESTObjectInterface {
 
     init {
-        isCubeMap = false //todo: true
+        isCubeMap = true //todo: true
         //castShadow = true
 
         glCubeMap = TextureCache[SAND_TEXTURE_NAME]
@@ -33,7 +33,7 @@ class GameMap(program: VBOShaderProgram, private val gameEntity: GameEntity?) :
 
     override fun loadReliefMap(): ByteBuffer? {
         return try {
-            val data = loadBitmapFromDB(textureResName, true) //false
+            val data = loadBitmapFromDB(textureResName, false) //true
             if (data != null) {
                 BufferUtils.createByteBuffer(data.size).put(data).rewind()
             }

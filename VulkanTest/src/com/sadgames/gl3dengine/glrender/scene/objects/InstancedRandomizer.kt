@@ -1,20 +1,26 @@
 package com.sadgames.gl3dengine.glrender.scene.objects
 
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
+import com.sadgames.gl3dengine.glrender.GLRenderConsts
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.LAND_SIZE_IN_KM
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.LAND_SIZE_IN_WORLD_SPACE
 import com.sadgames.gl3dengine.glrender.scene.objects.TopographicMapObject.ColorType
 import com.sadgames.gl3dengine.glrender.scene.objects.TopographicMapObject.MAX_HEIGHT_VALUES
 import com.sadgames.gl3dengine.glrender.scene.shaders.VBOShaderProgram
+import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.sysutils.common.clamp
 import com.sadgames.sysutils.common.plus
 import com.sadgames.sysutils.common.times
 import com.sadgames.sysutils.common.unaryMinus
 import com.sadgames.vulkan.newclass.Gdx2DPixmap
 import com.sadgames.vulkan.newclass.Pixmap
+import org.imgscalr.Scalr
+import java.awt.Color
+import java.awt.image.BufferedImage
 import java.util.*
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector4f
+import kotlin.math.roundToInt
 
 open class InstancedRandomizer(logic: GameEventsCallbackInterface?,
                           objFileName: String,
@@ -90,12 +96,17 @@ open class InstancedRandomizer(logic: GameEventsCallbackInterface?,
     }
 
     private fun createPathMap(logic: GameEventsCallbackInterface?): Pixmap {
-        val blendMap = Pixmap(Gdx2DPixmap(256, 256, Gdx2DPixmap.GDX2D_FORMAT_RGBA8888, 0))
-        blendMap.setColor(0)
+        //var blendMap = Pixmap(Gdx2DPixmap(256, 256, Gdx2DPixmap.GDX2D_FORMAT_RGBA8888, 0))
 
-        logic?.onPrepareMapTexture(blendMap)
+        val dimension: Int = 256 / (GLRenderConsts.TEXTURE_RESOLUTION_SCALE[settingsManager.graphicsQualityLevel.ordinal])
+        val dstImage = BufferedImage(dimension, dimension, 2)
+        val paint = dstImage.graphics
 
-        return blendMap
+        paint.color = Color(0)
+        paint.fillRect(0, 0, dimension, dimension)
+        logic?.onPrepareMapTexture(dstImage)
+
+        return Pixmap(Gdx2DPixmap(dstImage))
     }
 
     private fun world2Map(path: Pixmap, place: Vector2f) =

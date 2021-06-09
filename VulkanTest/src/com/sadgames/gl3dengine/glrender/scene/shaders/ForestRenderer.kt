@@ -23,7 +23,7 @@ class ForestRenderer : TerrainRendererProgram() {
     override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
         super.bindAdditionalParams(scene, renderable)
 
-        //renderable.modelMatrix[13] -= 0.03530573f
+        renderable.modelMatrix[13] -= 0.03530573f
         params[MODEL_MATRIX_PARAM_NAME]?.value = renderable.modelMatrix
     }
 }

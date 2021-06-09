@@ -55,7 +55,7 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
 
     protected static final boolean[] INVERT_LIGHT_FACTOR = {true, true, false, true, true, false};
 
-    protected Pixmap heightMap = null; //todo: -> check getPixel error ???
+    protected Pixmap heightMap = null;
 
     public TopographicMapObject(VBOShaderProgram program, String mapName) {
         super(mapName, program);
@@ -68,11 +68,6 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
             ByteBuffer buffer = loadReliefMap();
 
             return buffer != null ?
-                /* todo: change to BufferedImage ???
-                BufferedImage srcImage = ImageIO.read(new ByteBufferBackedInputStream(encodedData));
-		        encodedData.clear();
-		        Scalr.resize(srcImage, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, srcImage.getWidth() / scaleFactor, srcImage.getHeight() / scaleFactor, Scalr.OP_ANTIALIAS)
-                 */
                 new Pixmap(
                         new Gdx2DPixmap(
                                 buffer,
@@ -143,10 +138,9 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
         zCoord = Math.min(zCoord, dimension);
         xCoord = Math.max(xCoord, 0);
         zCoord = Math.max(zCoord, 0);
-        int vColor = ColorUtils.convert2libGDX(heightMap.getPixel(xCoord, zCoord));
+        int vColor = heightMap.getPixel(xCoord, zCoord);
 
-        float y = getYValueInternal(heightMap, xCoord, zCoord, vColor);
-        return y /*>=0 ? y * 3.0f : y*/;
+        return getYValueInternal(heightMap, xCoord, zCoord, vColor);
     }
 
     protected float getYValueInternal(Pixmap map, int xCoord, int yCoord, int vColor) {
@@ -166,24 +160,24 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
             return 0;
         }
 
-        float colorLight = getColorBrightness(ColorUtils.alpha(vColor),
-                ColorUtils.red(vColor),
-                ColorUtils.green(vColor)) - MIN_COLOR_VALUES[cType.ordinal()];
+        float colorLight = getColorBrightness(ColorUtils.red(vColor),
+                ColorUtils.green(vColor),
+                ColorUtils.blue(vColor)) - MIN_COLOR_VALUES[cType.ordinal()];
         float deltaLight = DELTA_COLOR_VALUES[cType.ordinal()];
 
         float kXZ = colorLight / deltaLight;
         kXZ = INVERT_LIGHT_FACTOR[cType.ordinal()] ? 1.0f - kXZ : kXZ;
 
         float y = minY + deltaY * kXZ;
-        y = cType.equals(ColorType.BLUE) || cType.equals(ColorType.CYAN) ? y/* *3f*/ : -y;
+        y = cType.equals(ColorType.BLUE) || cType.equals(ColorType.CYAN) ? -y : y;
 
-        return y;
+        return y * 3f;
     }
 
     protected static ColorType CheckColorType(Integer color) {
-        int R = ColorUtils.alpha(color);
-        int G = ColorUtils.red(color);
-        int B = ColorUtils.green(color);
+        int R = ColorUtils.red(color);
+        int G = ColorUtils.green(color);
+        int B = ColorUtils.blue(color);
         //int A = ColorUtils.blue(color);
 
         if ((B - G > 30) && (R < G))
@@ -225,10 +219,10 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
                     if ( !((i == xCoord) && (j == yCoord)) && (i <= dimension)
                          && (j <= dimension)
                         ) {
-                        int color = ColorUtils.convert2libGDX(map.getPixel(i, j));
-                        R += ColorUtils.alpha(color);
-                        G += ColorUtils.red(color);
-                        B += ColorUtils.green(color);
+                        int color = map.getPixel(i, j);
+                        R += ColorUtils.red(color);
+                        G += ColorUtils.green(color);
+                        B += ColorUtils.blue(color);
 
                         count++;
                     }
@@ -238,7 +232,7 @@ public abstract class TopographicMapObject extends AbstractTerrainObject {
         G /= count;
         B /= count;
 
-        return ColorUtils.argb(R, G, B, 255);
+        return ColorUtils.argb(255, R, G, B);
     }
 
 }

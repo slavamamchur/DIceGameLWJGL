@@ -28,7 +28,6 @@ import com.sadgames.gl3dengine.glrender.scene.postprocess.PostProcessStep
 import com.sadgames.gl3dengine.glrender.scene.shaders.*
 import com.sadgames.gl3dengine.manager.TextureCache
 import com.sadgames.gl3dengine.physics.PhysicalWorld
-import com.sadgames.gl3dengine.physics.PhysicalWorld.physicalWorld
 import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
 import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.vulkan.newclass.GLVersion
@@ -42,6 +41,7 @@ import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengles.EXTClipCullDistance
+import java.awt.Color
 import java.util.*
 import javax.vecmath.Color4f
 import javax.vecmath.Matrix4f
@@ -50,10 +50,9 @@ import javax.vecmath.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
-open class GLScene constructor(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(),
-        GLRendererInterface<SceneObjectsTreeItem> {
+open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
 
-    companion object { val lockObj = Any() }
+    //companion object { val lockObj = Any() }
 
     private var savedCamera: GLCamera? = null
     private var firstRun = true
@@ -77,7 +76,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
     override var program: VBOShaderProgram? = null
     override var lightSource: GLLightSource? = null;
     override val scene: GLScene get() = this
-    override val physicalWorldObject: DiscreteDynamicsWorld? get() = physicalWorld
+    //override val physicalWorldObject: DiscreteDynamicsWorld? get() = PhysicalWorld.physicalWorld
     override var luaEngine: Globals? = null
     override var glExtensions = ""
 
@@ -92,7 +91,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
             lightSource?.mCamera = field!!
         }
 
-    override val lockObject; get() = lockObj
+    //override val lockObject; get() = lockObj
 
     var mDisplayWidth = 0; private set
     var mDisplayHeight = 0; private set
@@ -105,7 +104,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
     var raysMapFBO: AbstractFBO? = null; private set
     var raysEffectFBO: AbstractFBO? = null; private set
     var hasDepthTextureExtension = checkDepthTextureExtension(); private set
-    var zoomCameraAnimation: GLAnimation? = null
+    override var zoomCameraAnimation: GLAnimation? = null
 
     private fun initScene() {
         camera = createCamIsometric(0f, 0.1f, 3f, 0f, 0f, 0f)
@@ -121,7 +120,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
 
     private fun scenePrepare() {
         initScene()
-        initPhysics()
+        //initPhysics()
 
         graphicsQualityLevel = settingsManager.graphicsQualityLevel
         glEnable(GL_MULTISAMPLE);
@@ -172,8 +171,6 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
     }
 
     override fun getObject(name: String?) = getChild(name) as AbstractGL3DObject?
-
-    fun getCachedShaderLua(type: Int) = getCachedShader(GLObjectType.values()[type])
 
     private fun createPostEffects2DScreen() {
         postEffects2DScreen = GUI2DImageObject(getCachedShader(GLObjectType.GUI_OBJECT), Vector4f(-1f, 1f, 1f, -1f), false)
@@ -308,7 +305,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
             if (gl3DObject.worldTransformOld != transform)
                 gl3DObject.setWorldTransformMatrix(transform)
             else {
-                physicalWorld.removeRigidBody(gl3DObject._body)
+                physicalWorldObject?.removeRigidBody(gl3DObject._body)
                 gl3DObject._body = null
                 gameEventsCallBackListener?.onStopMovingObject(gl3DObject)
             }
@@ -466,7 +463,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
         return null
     }
 
-    fun switrchTo2DMode() {
+    override fun switchTo2DMode() {
         synchronized(lockObject) {
             old2dModeValue = settingsManager.isIn_2D_Mode
             settingsManager.isIn_2D_Mode = true
@@ -474,7 +471,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
         }
     }
 
-    fun restorePrevViewMode() {
+    override fun restorePrevViewMode() {
         synchronized(lockObject) {
             settingsManager.isIn_2D_Mode = old2dModeValue
             camera = null
@@ -645,14 +642,14 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
         shaders.clear()
     }
 
-    fun createZoomCameraAnimation(zoomLevel: Float): GLAnimation? {
+    /*fun createZoomCameraAnimation(zoomLevel: Float): GLAnimation? {
         val animation = GLAnimation(zoomLevel, CAMERA_ZOOM_ANIMATION_DURATION)
         animation.luaEngine = luaEngine
 
         return animation
-    }
+    }*/
 
-    fun createTranslateAnimation(fromX: Float, toX: Float, fromY: Float, toY: Float, fromZ: Float, toZ: Float, duration: Long): GLAnimation? {
+    /*fun createTranslateAnimation(fromX: Float, toX: Float, fromY: Float, toY: Float, fromZ: Float, toZ: Float, duration: Long): GLAnimation? {
         val animation = GLAnimation(fromX, toX, fromY, toY, fromZ, toZ, duration)
         animation.luaEngine = luaEngine
 
@@ -667,7 +664,7 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
     }
 
     fun createTransform() = Matrix4f()
-    fun createVector3f(vx: Float, vy: Float, vz: Float) = Vector3f(vx, vy, vz)
+    fun createVector3f(vx: Float, vy: Float, vz: Float) = Vector3f(vx, vy, vz) */
 
     override fun onSurfaceCreated() { create() }
     override fun onSurfaceChanged(width: Int, height: Int) { resize(width, height) }
@@ -695,11 +692,11 @@ open class GLScene constructor(private val gameEventsCallBackListener: GameEvent
         glEnable(GL20.GL_DEPTH_TEST)*/
     }
 
-    fun createCamIsometric(xPos: Float, yPos: Float, zPos: Float, pitch: Float, yaw: Float, roll: Float): GLCamera? {
+    /*fun createCamIsometric(xPos: Float, yPos: Float, zPos: Float, pitch: Float, yaw: Float, roll: Float): GLCamera? {
         return FixedIsometricCamera(xPos, yPos, zPos, pitch, yaw, roll)
     }
 
-    fun createCam2D(landSize: Float) = Orthogonal2DCamera(landSize)
+    fun createCam2D(landSize: Float) = Orthogonal2DCamera(landSize)*/
 
     fun pause() {}
     fun resume() {}
@@ -754,4 +751,4 @@ private fun extractGlExtensions(glVersion: GLVersion): String {
 
 fun checkDepthTextureExtension() = true //GLES20JniWrapper.glExtensions().contains(UNI_DEPTH_TEXTURE_EXTENSION);
 
-private const val CAMERA_ZOOM_ANIMATION_DURATION: Long = 1000
+//private const val CAMERA_ZOOM_ANIMATION_DURATION: Long = 1000

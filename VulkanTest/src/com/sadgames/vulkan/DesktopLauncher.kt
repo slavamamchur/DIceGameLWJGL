@@ -99,10 +99,10 @@ object DesktopLauncher {
         initWindow(true)
 
         GL.createCapabilities()
-        renderer = NGL4xRenderer() //todo: Init game here
-        /*produceRenderByType(RenderType.GL4_RENDER,
+        renderer = /*NGL4xRenderer()*/ //todo: check pathMap
+        produceRenderByType(RenderType.GL4_RENDER,
             GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper)
-        )*/
+        )
 
         initCallBacks()
 

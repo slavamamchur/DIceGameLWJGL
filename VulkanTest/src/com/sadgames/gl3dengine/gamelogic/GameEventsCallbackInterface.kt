@@ -12,6 +12,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 //import com.sadgames.gl3dengine.glrender.scene.GLScene
 //import com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject todo: -> automatic set shader params
 import org.luaj.vm2.LuaValue
+import java.awt.image.BufferedImage
 
 interface GameEventsCallbackInterface {
     fun onStopMovingObject(gameObject: PNodeObject?)
@@ -21,7 +22,7 @@ interface GameEventsCallbackInterface {
     fun onInitLightSource(lightSource: GLLightSource?)
     fun onInitPhysics(dynamicsWorld: DynamicsWorld?)
     fun onLoadSceneObjects(glSceneObject: GLRendererInterface<SceneObjectsTreeItem>)
-    fun onPrepareMapTexture(textureBmp: Pixmap?)
+    fun onPrepareMapTexture(textureBmp: BufferedImage?/*Pixmap?*/)
     fun onCreateReflectionMap(reflectMap: AbstractFBO?, refractMap: AbstractFBO?)
     fun onBeforeDrawFrame(frametime: Long)
     fun onPlayerMakeTurn(delegate: GLAnimation.AnimationCallBack?)

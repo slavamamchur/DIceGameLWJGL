@@ -25,6 +25,7 @@ import com.sadgames.sysutils.common.ColorUtils.argb
 import com.sadgames.sysutils.common.toArray
 import org.luaj.vm2.Globals
 import org.lwjgl.opengl.GL20.*
+import java.awt.Color
 import java.util.*
 import javax.vecmath.Color4f
 import javax.vecmath.Vector3f
@@ -45,7 +46,7 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
     override var program: VBOShaderProgram? = null
     override val camera: GLCamera = FixedIsometricCamera(0f, 3f, 3f, 45f, 0f, 0f)
     override val lightSource: GLLightSource = GLLightSource(Vector3f(-2.2f, 1.2f, -3.2f).toArray(), Vector3f(1.0f, 1.0f, 0.8f), camera)
-    override val physicalWorldObject: DiscreteDynamicsWorld get() = PhysicalWorld.physicalWorld
+    //override val physicalWorldObject: DiscreteDynamicsWorld get() = PhysicalWorld.physicalWorld
     override var luaEngine: Globals? = null //todo: init
     override val scene; get() = this
     override var refractionMapFBO: AbstractFBO?  = null
@@ -53,12 +54,11 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
     override var backgroundTextureName: String? = argb(255, 0, 64, 255).toString()
     override var moveFactor = -1f
     override var frameTime: Long = 0
-    override val lockObject; get() = locker
+    //override val lockObject; get() = locker
     override var glExtensions = ""
+    override var zoomCameraAnimation: GLAnimation? = null
 
-    companion object {
-        val locker: Any = Any()
-    }
+    //companion object { val locker: Any = Any() }
 
     init {
         camera.rotateX(32.5f)
@@ -87,6 +87,13 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
 
     override fun getCachedShader(type: GLObjectType): VBOShaderProgram? = shaders[type]
     override fun getObject(name: String?) = getChild(name) as AbstractGL3DObject?
+    override fun switchTo2DMode() {
+        //TODO("Not yet implemented")
+    }
+
+    override fun restorePrevViewMode() {
+        //TODO("Not yet implemented")
+    }
 
     override fun onSurfaceCreated() {
         glEnable(GL_CULL_FACE)
@@ -115,7 +122,7 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
         terrain = GameMap(shaders[GLObjectType.GEN_TERRAIN_OBJECT]!!, game)
         terrain.loadObject()
         terrain.createRigidBody()
-        physicalWorldObject.addRigidBody(terrain._body)
+        physicalWorldObject?.addRigidBody(terrain._body)
 
         forest = ForestGenerator(
             null,

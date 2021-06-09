@@ -156,42 +156,48 @@ onPlayTurn = function()
     gameScene:getZoomCameraAnimation():startAnimation(nil, ON_PLAY_TURN_ANIMATION_END, {})
 end
 
-drawPath = function(blendMap, gameEntity) --todo: use BufferedImage drawing api
+drawPath = function(blendMap, gameEntity)
     if gameEntity:isDrawGamePoints() then
-        local scaleFactor = blendMap:getWidth() * 1.0 / DEFAULT_TEXTURE_SIZE
+        local scaleFactor = blendMap:getWidth() * 1.0 / DEFAULT_TEXTURE_SIZE --todo: use scaled size ???
+        local canvas = blendMap:getGraphics()
 
         for i = 0, gameEntity:getGamePoints():size() - 2 do
-            blendMap:setColor(0, 1.0, 0, 1.0)
+            canvas:setColor(gameScene:getColor(0, 1.0, 0, 1.0))
             local fromPt = gameEntity:getGamePoints():get(i):asVector2fLua(scaleFactor)
             local toPt = gameEntity:getGamePoints():get(i + 1):asVector2fLua(scaleFactor)
-            blendMap:drawLine(fromPt.x, fromPt.y, toPt.x, toPt.y)
-            blendMap:setColor(0, 0.55, 0, 1.0)
-            blendMap:drawLine(fromPt.x, fromPt.y - 1, toPt.x, toPt.y - 1)
-            blendMap:drawLine(fromPt.x, fromPt.y + 1, toPt.x, toPt.y + 1)
+            canvas:drawLine(fromPt.x, fromPt.y, toPt.x, toPt.y)
+            canvas:setColor(gameScene:getColor(0, 0.55, 0, 1.0))
+            canvas:drawLine(fromPt.x, fromPt.y - 1, toPt.x, toPt.y - 1)
+            canvas:drawLine(fromPt.x, fromPt.y + 1, toPt.x, toPt.y + 1)
 
-            blendMap:setColor(0, 0.25, 0, 1.0)
-            blendMap:drawLine(fromPt.x, fromPt.y - 2, toPt.x, toPt.y - 2)
-            blendMap:drawLine(fromPt.x, fromPt.y + 2, toPt.x, toPt.y + 2)
+            canvas:setColor(gameScene:getColor(0, 0.25, 0, 1.0))
+            canvas:drawLine(fromPt.x, fromPt.y - 2, toPt.x, toPt.y - 2)
+            canvas:drawLine(fromPt.x, fromPt.y + 2, toPt.x, toPt.y + 2)
 
-            blendMap:setColor(0, 0.125, 0, 1.0)
-            blendMap:drawLine(fromPt.x, fromPt.y - 3, toPt.x, toPt.y - 3)
-            blendMap:drawLine(fromPt.x, fromPt.y + 3, toPt.x, toPt.y + 3)
+            canvas:setColor(gameScene:getColor(0, 0.125, 0, 1.0))
+            canvas:drawLine(fromPt.x, fromPt.y - 3, toPt.x, toPt.y - 3)
+            canvas:drawLine(fromPt.x, fromPt.y + 3, toPt.x, toPt.y + 3)
 
-            blendMap:setColor(0, 0.0625, 0, 1.0)
-            blendMap:drawLine(fromPt.x, fromPt.y - 4, toPt.x, toPt.y - 4)
-            blendMap:drawLine(fromPt.x, fromPt.y + 4, toPt.x, toPt.y + 4)
+            canvas:setColor(gameScene:getColor(0, 0.0625, 0, 1.0))
+            canvas:drawLine(fromPt.x, fromPt.y - 4, toPt.x, toPt.y - 4)
+            canvas:drawLine(fromPt.x, fromPt.y + 4, toPt.x, toPt.y + 4)
 
-            blendMap:setColor(0, 0.03125, 0, 1.0)
-            blendMap:drawLine(fromPt.x, fromPt.y - 5, toPt.x, toPt.y - 5)
-            blendMap:drawLine(fromPt.x, fromPt.y + 5, toPt.x, toPt.y + 5)
+            canvas:setColor(gameScene:getColor(0, 0.03125, 0, 1.0))
+            canvas:drawLine(fromPt.x, fromPt.y - 5, toPt.x, toPt.y - 5)
+            canvas:drawLine(fromPt.x, fromPt.y + 5, toPt.x, toPt.y + 5)
 
-            blendMap:setColor(0 , 0, 1.0, 1.0)
-            for k = 0, 2 do
-                blendMap:drawCircle(fromPt.x, fromPt.y, 7.5 * scaleFactor - k) --todo: use draw pixmap
+            canvas:setColor(gameScene:getColor(0 , 0, 1.0, 1.0))
+            canvas:fillOval(fromPt.x, fromPt.y, 7.5 * scaleFactor, 7.5 * scaleFactor)
+            if i == (gameEntity:getGamePoints():size() - 2) then
+                canvas:fillOval(toPt.x, toPt.y, 7.5 * scaleFactor, 7.5 * scaleFactor)
+            end
+
+--[[            for k = 0, 2 do
+                blendMap:drawCircle(fromPt.x, fromPt.y, 7.5 * scaleFactor - k) --todo: use drawImage()
                 if i == (gameEntity:getGamePoints():size() - 2) then
                     blendMap:drawCircle(toPt.x, toPt.y, 7.5 * scaleFactor - k)
                 end
-            end
+            end]]
         end
     end
 end
@@ -199,7 +205,7 @@ end
 rollDice = function()
     local dice = gameScene:getObject(DICE_MESH_OBJECT)
 
-    gameScene:switrchTo2DMode()
+    gameScene:switchTo2DMode()
     chnageWayPointsVisibility()
 
     dice:createRigidBody()

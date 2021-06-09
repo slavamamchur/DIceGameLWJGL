@@ -10,6 +10,7 @@ package com.sadgames.gl3dengine.gamelogic.client;
 
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.cubegames.engine.domain.entities.players.InstancePlayer;
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface;
 import com.sadgames.gl3dengine.gamelogic.client.entities.GameMap;
 import com.sadgames.gl3dengine.gamelogic.server.rest_api.RestApiInterface;
@@ -46,6 +47,7 @@ import com.sadgames.vulkan.newclass.Gdx2DPixmap;
 import com.sadgames.vulkan.newclass.Pixmap;
 import com.sadgames.vulkan.newclass.audio.OpenALSound;
 
+import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaTable;
@@ -55,6 +57,7 @@ import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.lwjgl.BufferUtils;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -68,6 +71,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
@@ -132,13 +136,10 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
         if (checkLogin(restAPI)) {
             GameInstanceEntity gameInst = restAPI.iGetGameInstanceEntity(instanceId);
-            GameEntity game = gameInst.getGame();
-
             gameInstanceEntity = gameInst;
             savedPlayers = new ArrayList<>(gameInst.getPlayers());
             gameEntity = gameInst.getGame();;
             mapEntity = new GameMapEntity(gameEntity.getMapId());
-
         } else
             throw new RuntimeException("Can not login to server.");
 
@@ -410,7 +411,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
             glScene.getScene().putChild(miniMapView, MINI_MAP_OBJECT);
         }
 
-        ///todo: createUI();
+        ///todo: createUI(); or import 2d UI lib from gdx???
 
         wind.startAnimation(forest, null);
 
@@ -431,7 +432,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         TextButton btn = new TextButton("Play", style);
         btn.addListener( new ClickListener() {
             @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) { //todo: other event???
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 playTurn();
 
                 return true;
@@ -460,18 +461,27 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
     private AbstractTexture createBlendingMap() {
         Pixmap blendMap;
+
         try (InputStream source = getResourceStream("/textures/blendingMap.png")) {
             assert source != null;
-            ByteBuffer buffer = BufferUtils.createByteBuffer(source.available());
-            Channels.newChannel(source).read(buffer);
+            ByteBuffer encodedData = BufferUtils.createByteBuffer(source.available());
+            Channels.newChannel(source).read(encodedData);
 
-            blendMap = new Pixmap(new Gdx2DPixmap(buffer, TEXTURE_RESOLUTION_SCALE[getSettingsManager().getGraphicsQualityLevel().ordinal()]));
+            BufferedImage srcImage = ImageIO.read(new ByteBufferBackedInputStream(encodedData));
+            encodedData.clear();
+            int scaleFactor = TEXTURE_RESOLUTION_SCALE[getSettingsManager().getGraphicsQualityLevel().ordinal()];
+            BufferedImage dstImage =
+            Scalr.resize(srcImage, Scalr.Method.AUTOMATIC, Scalr.Mode.AUTOMATIC, srcImage.getWidth() / scaleFactor, srcImage.getHeight() / scaleFactor, Scalr.OP_ANTIALIAS);
+
+            onPrepareMapTexture(dstImage);
+
+            blendMap = new Pixmap(new Gdx2DPixmap(dstImage));
+            ///blendMap = new Pixmap(new Gdx2DPixmap(buffer, TEXTURE_RESOLUTION_SCALE[getSettingsManager().getGraphicsQualityLevel().ordinal()]));
         } catch (IOException e) {
             e.printStackTrace();
             blendMap = null;
         }
 
-        onPrepareMapTexture(blendMap);
         BitmapWrapper bmp = new BitmapWrapper(blendMap);
         bmp.setName(GameConst.BLENDING_MAP_TEXTURE);
         AbstractTexture glTexture = BitmapTexture.createInstance(bmp);
@@ -481,7 +491,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
     }
 
     @Override
-    public void onPrepareMapTexture(Pixmap textureBmp) {
+    public void onPrepareMapTexture(/*Pixmap*/BufferedImage textureBmp) {
         luaEngine.get(ON_PREPARE_MAP_TEXTURE_EVENT_HANDLER).call(CoerceJavaToLua.coerce(textureBmp),
                                                                  CoerceJavaToLua.coerce(gameEntity));
     }
