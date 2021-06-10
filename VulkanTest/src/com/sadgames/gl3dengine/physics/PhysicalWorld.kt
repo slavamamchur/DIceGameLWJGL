@@ -22,8 +22,6 @@ import javax.vecmath.Vector3f
 
 object PhysicalWorld {
 
-    private const val discreteInterval = 1f / 60f
-
     var physicalWorld: DiscreteDynamicsWorld; private set
 
     private val gameEventsCallBackListener: GameEventsCallbackInterface?; get() = GdxExt.gameLogic
@@ -40,16 +38,10 @@ object PhysicalWorld {
     }
 
     fun simulateStep(time: Long) {
-        val realInterval = if (old_frame_time == 0L) 0L else time - old_frame_time
+        val realInterval = if (old_frame_time == 0L) 0f else (time - old_frame_time) / 1000f
         old_frame_time = time
 
-        //val realInterval = GdxExt.graphics.deltaTime
-        var j = 0f
-
-        while (j < realInterval / discreteInterval) {
-            physicalWorld.stepSimulation(discreteInterval)
-            j++
-        }
+        physicalWorld.stepSimulation(1f, 1, realInterval)
 
         for (i in 0 until physicalWorld.dispatcher.numManifolds)
             if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts > 0
