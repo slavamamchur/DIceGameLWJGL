@@ -39,7 +39,7 @@ object GDXPreferences: SettingsManagerInterface {
     override var foregroundFPSLimit; get() = safeReadProperty(PARAM_FOREGROUND_FPS_LIMIT, 0); set(value) = safeWriteProperty(PARAM_FOREGROUND_FPS_LIMIT, value)
 
     init {
-        GDXPreferences::class.java.classLoader.getResourceAsStream(CONFIG_FILE_NAME)?.use { preferences.loadFromXML(it) }
+        GDXPreferences::class.java.classLoader.getResourceAsStream("/settings/$CONFIG_FILE_NAME")?.use { preferences.loadFromXML(it) } //todo: remove to settings folder
     }
 
     private fun safeReadProperty(name: String, defValue: String): String? {
@@ -51,7 +51,7 @@ object GDXPreferences: SettingsManagerInterface {
 
     private fun flush() {
         synchronized(lockObject) {
-            val path = this.javaClass.getResource("/settings").path // "/"
+            val path = this.javaClass.getResource("/settings").path
             FileOutputStream(File("$path/$CONFIG_FILE_NAME")).use {
                 preferences.storeToXML(it, null)
             }

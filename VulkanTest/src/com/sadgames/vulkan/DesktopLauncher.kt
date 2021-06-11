@@ -2,7 +2,8 @@ package com.sadgames.vulkan
 
 import com.sadgames.dicegame.desktop.DesktopRestApiWrapper
 import com.sadgames.gl3dengine.gamelogic.client.GameLogic
-import com.sadgames.gl3dengine.glrender.GLRenderConsts.*
+import com.sadgames.gl3dengine.glrender.GLRenderConsts.GraphicsQuality
+import com.sadgames.gl3dengine.glrender.GLRenderConsts.RenderType
 import com.sadgames.gl3dengine.glrender.GLRendererFabric.produceRenderByType
 import com.sadgames.gl3dengine.glrender.GLRendererInterface
 import com.sadgames.gl3dengine.glrender.GdxExt
@@ -99,7 +100,7 @@ object DesktopLauncher {
         initWindow(true)
 
         GL.createCapabilities()
-        renderer = /*NGL4xRenderer()*/ //todo: check pathMap
+        renderer = /*NGL4xRenderer()*/
         produceRenderByType(RenderType.GL4_RENDER,
             GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper)
         )

@@ -1,8 +1,8 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
+import com.sadgames.sysutils.common.ColorUtils.convert2libGDX
 import com.sadgames.vulkan.newclass.Gdx2DPixmap
 import com.sadgames.vulkan.newclass.Pixmap
-import com.sadgames.sysutils.common.ColorUtils.convert2libGDX
 import java.nio.ByteBuffer
 
 class GlPixmap: Pixmap {
@@ -12,7 +12,7 @@ class GlPixmap: Pixmap {
     constructor(dst: Gdx2DPixmap?): super(dst)
 
     override fun setColor(color: Int) = super.setColor(convert2libGDX(color))
-    override fun getPixel(x: Int, y: Int) = convert2libGDX(super.getPixel(x, y))
+    //override fun getPixel(x: Int, y: Int) = convert2libGDX(super.getPixel(x, y))
 
 
 /* companion object { //todo: implement

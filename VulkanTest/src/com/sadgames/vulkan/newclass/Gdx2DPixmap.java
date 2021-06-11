@@ -17,7 +17,6 @@
 package com.sadgames.vulkan.newclass;
 
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
-import com.sadgames.sysutils.common.ColorUtils;
 
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +27,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -181,11 +177,8 @@ public class Gdx2DPixmap {
 	}*/
 
 	public int getPixel (int x, int y) {
-		//byte[] pixels = new byte[pixelPtr.capacity()];
-		//pixelPtr.get(pixels);
-
-		int pixel = pixelPtr.getInt(y * width * 4 + x * 4);
-		pixel = ColorUtils.argb((pixel >> 24) & 0xFF,  pixel & 0xFF, (pixel >> 8) & 0xFF, (pixel >> 16) & 0xFF);
+		int pixel = pixelPtr.getInt(y * (width << 2) + (x << 2));
+		pixel = (pixel & 0xFF00FF00) | ((pixel >> 16) & 0xFF) | ((pixel << 16) & 0x00FF0000);
 
 		return pixel;
 	}

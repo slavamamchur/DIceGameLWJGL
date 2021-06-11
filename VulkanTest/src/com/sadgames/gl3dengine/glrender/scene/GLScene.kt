@@ -1,19 +1,14 @@
 package com.sadgames.gl3dengine.glrender.scene
 
-///import com.badlogic.gdx.scenes.scene2d.Stage
-///import com.badlogic.gdx.scenes.scene2d.ui.Label
-///import com.badlogic.gdx.scenes.scene2d.ui.Table
+/*import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Table*/
 
-import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
 import com.sadgames.gl3dengine.gamelogic.client.GameConst
-import com.sadgames.gl3dengine.gamelogic.client.GameLogic
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.*
 import com.sadgames.gl3dengine.glrender.GLRendererInterface
-import com.sadgames.gl3dengine.glrender.GdxExt
-import com.sadgames.gl3dengine.glrender.glapi.*
 import com.sadgames.gl3dengine.glrender.scene.animation.GLAnimation
-import com.sadgames.gl3dengine.glrender.scene.camera.FixedIsometricCamera
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera
 import com.sadgames.gl3dengine.glrender.scene.camera.Orthogonal2DCamera
 import com.sadgames.gl3dengine.glrender.scene.fbo.AbstractFBO
@@ -26,6 +21,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 import com.sadgames.gl3dengine.glrender.scene.postprocess.PostProcessStep
 import com.sadgames.gl3dengine.glrender.scene.shaders.*
+import com.sadgames.gl3dengine.manager.GDXPreferences
 import com.sadgames.gl3dengine.manager.TextureCache
 import com.sadgames.gl3dengine.physics.PhysicalWorld
 import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
@@ -33,22 +29,16 @@ import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.vulkan.newclass.GLVersion
 import com.sadgames.vulkan.newclass.GLVersion.ApplicationType
 import org.luaj.vm2.Globals
-import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL13.GL_MULTISAMPLE
-import org.lwjgl.opengl.GL15.glBindBuffer
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengles.EXTClipCullDistance
-import java.awt.Color
 import java.util.*
 import javax.vecmath.Color4f
-import javax.vecmath.Matrix4f
-import javax.vecmath.Vector3f
 import javax.vecmath.Vector4f
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
 
@@ -56,7 +46,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     private var savedCamera: GLCamera? = null
     private var firstRun = true
-    private lateinit var graphicsQualityLevel: GraphicsQuality
+    private val graphicsQualityLevel = GDXPreferences.graphicsQualityLevel
     private val shaders: MutableMap<GLObjectType, VBOShaderProgram> = EnumMap(GLObjectType::class.java)
     private var postEffects2DScreen: GUI2DImageObject? = null
     private var isSimulating = false
@@ -119,10 +109,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     private fun initPhysics() { val instance = PhysicalWorld }
 
     private fun scenePrepare() {
-        initScene()
+        //initScene()
         //initPhysics()
 
-        graphicsQualityLevel = settingsManager.graphicsQualityLevel
+        //graphicsQualityLevel = settingsManager.graphicsQualityLevel
         glEnable(GL_MULTISAMPLE);
         glExtensions = extractGlExtensions(extractVersion())
         hasDepthTextureExtension = checkDepthTextureExtension()
@@ -238,6 +228,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     private fun updateViewPorts(width: Int, height: Int) {
         if (firstRun) {
             firstRun = false
+
+            initScene() // todo: ???
         }
 
         if (mDisplayWidth > 0) {
