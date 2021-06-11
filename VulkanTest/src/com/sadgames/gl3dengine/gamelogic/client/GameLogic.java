@@ -116,7 +116,6 @@ import static com.sadgames.sysutils.common.CommonUtils.getSettingsManager;
 import static com.sadgames.sysutils.common.CommonUtils.waitForGC;
 import static com.sadgames.sysutils.common.LuaUtils.javaList2LuaTable;
 import static com.sadgames.sysutils.common.MathUtils.mulMatOnVec;
-import static com.sadgames.vulkan.newclass.Gdx2DPixmap.GDX2D_FORMAT_RGBA8888;
 
 public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
@@ -133,6 +132,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
     public GameLogic(String instanceId, RestApiInterface restAPI) {
         GdxExt.gameLogic = this;
+        GdxExt.restAPI = restAPI;
 
         if (checkLogin(restAPI)) {
             GameInstanceEntity gameInst = restAPI.iGetGameInstanceEntity(instanceId);
@@ -467,7 +467,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
             ByteBuffer encodedData = BufferUtils.createByteBuffer(source.available());
             Channels.newChannel(source).read(encodedData);
 
-            BufferedImage srcImage = ImageIO.read(new ByteBufferBackedInputStream(encodedData));
+            BufferedImage srcImage = ImageIO.read(new ByteBufferBackedInputStream(encodedData.flip()));
             encodedData.clear();
             int scaleFactor = TEXTURE_RESOLUTION_SCALE[getSettingsManager().getGraphicsQualityLevel().ordinal()];
             BufferedImage dstImage =

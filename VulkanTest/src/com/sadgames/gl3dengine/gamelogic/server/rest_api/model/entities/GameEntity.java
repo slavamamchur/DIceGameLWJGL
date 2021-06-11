@@ -2,13 +2,13 @@ package com.sadgames.gl3dengine.gamelogic.server.rest_api.model.entities;
 
 import com.cubegames.engine.domain.entities.points.AbstractGamePoint;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.sadgames.gl3dengine.gamelogic.client.GameConst;
+import com.sadgames.gl3dengine.gamelogic.server.rest_api.RestConst;
 import com.sadgames.gl3dengine.gamelogic.server.rest_api.controller.AbstractController;
 import com.sadgames.gl3dengine.gamelogic.server.rest_api.controller.GameController;
 import com.sadgames.gl3dengine.gamelogic.server.rest_api.model.entities.items.InteractiveGameItem;
 import com.sadgames.gl3dengine.glrender.GLRenderConsts;
-import com.sadgames.gl3dengine.gamelogic.client.GameConst;
 import com.sadgames.gl3dengine.glrender.scene.objects.materials.MaterialPropertiesObject;
-import com.sadgames.gl3dengine.gamelogic.server.rest_api.RestConst;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -16,7 +16,6 @@ import java.util.List;
 
 import javax.vecmath.Vector3f;
 
-import static com.sadgames.gl3dengine.GLEngineConsts.COMPRESSED_TEXTURE_FILE_EXT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT;
 import static com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject.MOVING_OBJECT;
 import static com.sadgames.sysutils.common.CommonUtils.getResourceStream;
@@ -125,7 +124,7 @@ public class GameEntity extends BasicNamedDbEntity {
             gameItems = new ArrayList<>();
 
             MaterialPropertiesObject material = new MaterialPropertiesObject(0.4f, 1.0f, 0.9f,
-                    GameConst.DICE_MESH_OBJECT_1 + COMPRESSED_TEXTURE_FILE_EXT, null, null, null);
+                    GameConst.DICE_MESH_OBJECT_1 /*+ COMPRESSED_TEXTURE_FILE_EXT*/, null, null, null);
 
             InteractiveGameItem dice = createNewItem(GameConst.DICE_MESH_OBJECT_1,
                                                      GameConst.TERRAIN_MESH_OBJECT,

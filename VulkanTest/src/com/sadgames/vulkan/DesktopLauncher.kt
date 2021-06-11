@@ -64,7 +64,7 @@ object DesktopLauncher {
 
         glfwMakeContextCurrent(window)
         glfwSwapInterval(0)
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+        //todo: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
         glfwShowWindow(window)
     }
 

@@ -122,6 +122,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         loadScene()
 
+        gameEventsCallBackListener?.onCreateReflectionMap(reflectionMapFBO, refractionMapFBO)
+
         //todo: GUI
         /*for (control in (gameEventsCallBackListener as GameLogic).gameControls) {
             table.add(control)
@@ -212,7 +214,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                 Color4f(0.0f, 0.0f, 0.0f, 0.0f),
                 true,
                 2)
-        gameEventsCallBackListener?.onCreateReflectionMap(reflectionMapFBO, refractionMapFBO)
     }
 
     private fun generateRaysMapFBO() {

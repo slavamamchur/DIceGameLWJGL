@@ -11,7 +11,7 @@ import com.sadgames.vulkan.newclass.Pixmap
 import java.nio.ByteBuffer
 
 class BitmapWrapper private constructor(rawData: ByteBuffer?, val width: Int, val height: Int, val isCompressed: Boolean) {
-    var rawData = rawData; get() = field?.rewind() as ByteBuffer?; private set
+    var rawData = rawData; get() = field?.rewind(); private set
     val imageSizeBytes = rawData?.capacity() ?: 0
     var name = ""
     val decodedRawData; get() = /*if (isCompressed) ETC1.decodeImage(ETC1Data(width, height, rawData, 0), Pixmap.Format.RGB888).pixels else*/ rawData
