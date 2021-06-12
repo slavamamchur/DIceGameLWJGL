@@ -8,6 +8,7 @@ import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
 import com.sadgames.gl3dengine.gamelogic.client.GameConst
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.*
 import com.sadgames.gl3dengine.glrender.GLRendererInterface
+import com.sadgames.gl3dengine.glrender.GdxExt
 import com.sadgames.gl3dengine.glrender.scene.animation.GLAnimation
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera
 import com.sadgames.gl3dengine.glrender.scene.camera.Orthogonal2DCamera
@@ -230,12 +231,14 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         if (firstRun) {
             firstRun = false
 
-            initScene() // todo: ???
+            initScene()
         }
 
         if (mDisplayWidth > 0) {
             mDisplayWidth = width
             mDisplayHeight = height
+            GdxExt.width = width
+            GdxExt.height = height
 
             camera!!.aspectRatio = mDisplayWidth * 1f / mDisplayHeight
 
@@ -508,7 +511,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             camera!!.flipVertical()
 
             /** Render ray map  */
-            renderItems(refractionMapFBO, //todo: error in ray map???
+            renderItems(refractionMapFBO,
                         getCachedShader(GLObjectType.REFRACTION_MAP_OBJECT)!!,
                         { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoRefractionMap(sceneObject!!) },
                         { condition ->
@@ -521,18 +524,18 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         /** render colorBuffer  */
-        renderItems(mainRenderFBO, null,
+        renderItems(/*mainRenderFBO*/null, null,
                     { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoColorBuffer(sceneObject!!) }, { true })
 
-        mainRenderFBO!!.activeTexture = 1
-        mainRenderFBO!!.resolve2FBO(transiteFBO!!)
-        refractionMapFBO!!.activeTexture = 1
+        ///mainRenderFBO!!.activeTexture = 1
+        ///mainRenderFBO!!.resolve2FBO(transiteFBO!!)
+        ///refractionMapFBO!!.activeTexture = 1
 
         /** for post effects image processing  */
         glDisable(GL20.GL_DEPTH_TEST)
-        val steps = ArrayList<PostProcessStep>()
+        /*val steps = ArrayList<PostProcessStep>()
         if (!settingsManager.isIn_2D_Mode) {
-            steps.add(PostProcessStep(raysMapFBO!!.fboTexture!!,
+            steps.add(PostProcessStep(refractionMapFBO!!.fboTexture!!,
                              null,
                                       GameConst.GOD_RAYS_POST_EFFECT,
                                       object : HashMap<String, Any>() {
@@ -575,7 +578,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             renderPostEffectsBuffer(null, steps)
 
             //todo: implement correctly
-            /*steps.clear()
+            *//*steps.clear()
             steps.add(PostProcessStep(transiteFBO2!!.fboTexture!!,
                     null,
                     GameConst.DOF_EFFECT,
@@ -588,10 +591,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                         }
                     } ))
 
-            renderPostEffectsBuffer(null, steps)*/
+            renderPostEffectsBuffer(null, steps)*//*
         }
 
-        steps.clear()
+        steps.clear()*/
 
         /** fix for 2D-UI bug */
         glBindVertexArray(0)
