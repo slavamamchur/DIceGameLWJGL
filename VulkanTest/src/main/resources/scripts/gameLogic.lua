@@ -161,6 +161,9 @@ drawPath = function(blendMap, gameEntity)
         local scaleFactor = blendMap:getWidth() * 1.0 / DEFAULT_TEXTURE_SIZE --todo: use scaled size ???
         local canvas = blendMap:getGraphics()
 
+--[[        canvas:setColor(gameScene:getColor(1.0, 1.0, 1.0, 1.0))
+        canvas:fillRect(0, 0, blendMap:getWidth(), blendMap:getHeight())]]
+
         for i = 0, gameEntity:getGamePoints():size() - 2 do
             canvas:setColor(gameScene:getColor(0, 1.0, 0, 1.0))
             local fromPt = gameEntity:getGamePoints():get(i):asVector2fLua(scaleFactor)

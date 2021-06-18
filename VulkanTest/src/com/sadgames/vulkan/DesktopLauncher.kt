@@ -100,11 +100,11 @@ object DesktopLauncher {
         initWindow(true)
 
         GL.createCapabilities()
+
         renderer = /*NGL4xRenderer()*/
         produceRenderByType(RenderType.GL4_RENDER,
             GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper)
         )
-
         initCallBacks()
 
         GdxExt.audio = OpenALLwjglAudio()

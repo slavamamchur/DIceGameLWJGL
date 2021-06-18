@@ -1,10 +1,10 @@
 package com.sadgames.vulkan
 
-import com.bulletphysics.dynamics.DiscreteDynamicsWorld
 import com.sadgames.gl3dengine.gamelogic.client.GameConst
 import com.sadgames.gl3dengine.gamelogic.client.GameConst.SKY_BOX_CUBE_MAP_OBJECT
 import com.sadgames.gl3dengine.gamelogic.client.entities.GameMap
 import com.sadgames.gl3dengine.gamelogic.server.rest_api.model.entities.GameEntity
+import com.sadgames.gl3dengine.glrender.GLRenderConsts
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType
 import com.sadgames.gl3dengine.glrender.GLRendererInterface
 import com.sadgames.gl3dengine.glrender.GdxExt
@@ -19,17 +19,17 @@ import com.sadgames.gl3dengine.glrender.scene.lights.GLLightSource
 import com.sadgames.gl3dengine.glrender.scene.objects.*
 import com.sadgames.gl3dengine.glrender.scene.objects.generated.ForestGenerator
 import com.sadgames.gl3dengine.glrender.scene.shaders.*
+import com.sadgames.gl3dengine.manager.GDXPreferences.graphicsQualityLevel
 import com.sadgames.gl3dengine.manager.TextureCache
-import com.sadgames.gl3dengine.physics.PhysicalWorld
 import com.sadgames.sysutils.common.ColorUtils.argb
 import com.sadgames.sysutils.common.toArray
 import org.luaj.vm2.Globals
 import org.lwjgl.opengl.GL20.*
-import java.awt.Color
 import java.util.*
 import javax.vecmath.Color4f
 import javax.vecmath.Vector3f
 import javax.vecmath.Vector4f
+import kotlin.math.roundToInt
 
 
 class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
@@ -107,6 +107,7 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
         shaders[GLObjectType.SUN_OBJECT] = SunRendererProgram()
         shaders[GLObjectType.GEN_TERRAIN_OBJECT] = TerrainRendererProgram()
         shaders[GLObjectType.FOREST_OBJECT] = ForestRenderer()
+        shaders[GLObjectType.SHADOW_MAP_OBJECT] = ShadowMapProgram()
 
         TextureCache[GameConst.TERRAIN_ATLAS_TEXTURE_NAME]
 
@@ -157,7 +158,12 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
             transiteFBO?.cleanUp()
             renderBuffer?.cleanUp()
 
-            shadowMapFBO = DepthBufferFBO(width, height)
+            val shadowMapResolutionScaleFactor = GLRenderConsts.SHADOW_MAP_RESOLUTION_SCALE[graphicsQualityLevel.ordinal]
+            val shadowMapWidth = (width * shadowMapResolutionScaleFactor).roundToInt()
+            val shadowMapHeight = (height * shadowMapResolutionScaleFactor).roundToInt()
+            lightSource.updateViewProjectionMatrix(shadowMapWidth, shadowMapHeight)
+            shadowMapFBO = DepthBufferFBO(shadowMapWidth, shadowMapHeight)
+
             renderBuffer = ColorBufferFBO(width, height, Color4f(0f, 0f, 0f, 0f), isMultiSampled = true)
             transiteFBO = ColorBufferFBO(width, height, Color4f(0f, 0f, 0f, 0f))
         }
@@ -170,14 +176,20 @@ class NGL4xRenderer: SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTre
         glEnable(GL_MULTISAMPLE)
         glEnable(GL_DEPTH_TEST)
 
-        shadowMapFBO?.bind()
+        if (forest.animation.isInProgress)
+            forest.animation.animate(forest)
+
+        shadowMapFBO!!.bind()
+        glCullFace(GL_FRONT)
+        program = getCachedShader(GLObjectType.SHADOW_MAP_OBJECT)
+        program?.useProgram()
+        program?.bindGlobalParams(this)
+        forest.bindVBO(program)
+        forest.render()
 
         renderBuffer!!.bind()
 
         glCullFace(GL_BACK)
-
-        if (forest.animation.isInProgress)
-            forest.animation.animate(forest)
 
         drawObject2ColorBuffer(skyDomeObject)
         drawObject2ColorBuffer(sun)

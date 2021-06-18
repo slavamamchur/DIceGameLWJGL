@@ -109,12 +109,8 @@ public class GUI2DImageObject extends AbstractGL3DObject {
     public void bindMaterial(VBOShaderProgram program) {
         super.bindMaterial(program);
 
-        if (diffuse != null) {
-            diffuse.bind(0);
-
-            GLShaderParam param = program.paramByName(ACTIVE_TEXTURE_SLOT_PARAM_NAME);
-            if (param != null && param.getParamReference() >= 0)
-                param.setValue(0);
-        }
+        GLShaderParam param = program.paramByName(ACTIVE_TEXTURE_SLOT_PARAM_NAME); //todo: move reference check into paramByName() code
+        if (diffuse != null && param != null && param.getParamReference() >= 0)
+            param.setValue(diffuse.bind(0));
     }
 }

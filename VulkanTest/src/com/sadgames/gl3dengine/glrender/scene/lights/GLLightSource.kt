@@ -1,10 +1,10 @@
 package com.sadgames.gl3dengine.glrender.scene.lights
 
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera
-import com.sadgames.sysutils.common.MathUtils.*
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera.Companion.FAR_PLANE
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera.Companion.NEAR_PLANE
 import com.sadgames.sysutils.common.*
+import com.sadgames.sysutils.common.MathUtils.*
 import java.lang.Math.toDegrees
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector3f
@@ -98,8 +98,7 @@ open class GLLightSource(lightPos: FloatArray, var lightColour: Vector3f, camera
         else { /** set view matrix via pitch/roll angles */
             val center = Vector3f(lightDirection)
             val pitch = toDegrees(acos(Vector2f(lightDirection!!.x, lightDirection!!.z).length().toDouble())).toFloat()
-            val yaw = toDegrees((atan(lightDirection!!.x / lightDirection!!.z).toDouble())).toFloat()
-                    - if (lightDirection!!.z > 0f) 180f else 0f
+            val yaw = toDegrees((atan(lightDirection!!.x / lightDirection!!.z).toDouble())).toFloat() - if (lightDirection!!.z > 0f) 180f else 0f
 
             rotateM(viewMatrix, pitch, -yaw, 0f)
             translateM(viewMatrix, 0, center.x, center.y, center.z)

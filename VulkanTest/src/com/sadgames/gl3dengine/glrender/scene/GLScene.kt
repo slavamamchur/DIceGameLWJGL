@@ -58,6 +58,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     private var prevObject: AbstractGL3DObject? = null
     private var old2dModeValue = false
     //todo: private lateinit var stage: Stage
+    private val isClippingPlanesSupported by lazy{glExtensions.contains("_cull_distance")}
 
     override var moveFactor = 0f
     override var frameTime: Long = 0
@@ -139,7 +140,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         return if (program == null) {
             program = when (type) {
-                GLObjectType.TERRAIN_OBJECT_32 -> Gl32TerrainRenderer()
+                GLObjectType.TERRAIN_OBJECT -> TerrainRendererProgram()
                 GLObjectType.WATER_OBJECT -> WaterRendererProgram()
                 GLObjectType.GEN_TERRAIN_OBJECT -> GenTerrainProgram()
                 GLObjectType.SHADOW_MAP_OBJECT -> ShadowMapProgram()
@@ -483,6 +484,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         calculateSceneTransformations()
 
         /** Render ShadowMap  */
+        glEnable(GL_DEPTH_TEST)
         glCullFace(GL_FRONT)
         renderItems(shadowMapFBO,
                     getCachedShader(GLObjectType.SHADOW_MAP_OBJECT)!!, {drawObjectIntoShadowMap(it)},
@@ -490,10 +492,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         glCullFace(GL_BACK)
         glEnable(GL20.GL_BLEND)
         glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+        glBlendEquation(GL_FUNC_ADD)
 
         /** Render reflection and refraction maps  */
         if (reflectionMapFBO != null && !settingsManager.isIn_2D_Mode) {
-            val isClippingPlanesSupported = false //todo: glExtensions().contains(GL_EXT_clip_cull_distance);
             if (isClippingPlanesSupported) glEnable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
             camera!!.flipVertical()
             val uniqProg = getCachedShader(GLObjectType.SKY_DOME_OBJECT)
@@ -523,17 +525,18 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                 glDisable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
         }
 
+        getObject(GameConst.MINI_MAP_OBJECT)?.glTexture = shadowMapFBO?.fboTexture
         /** render colorBuffer  */
-        renderItems(/*mainRenderFBO*/null, null,
+        renderItems(mainRenderFBO, null,
                     { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoColorBuffer(sceneObject!!) }, { true })
 
-        ///mainRenderFBO!!.activeTexture = 1
-        ///mainRenderFBO!!.resolve2FBO(transiteFBO!!)
-        ///refractionMapFBO!!.activeTexture = 1
+        mainRenderFBO!!.activeTexture = 1
+        mainRenderFBO!!.resolve2FBO(transiteFBO!!)
+        refractionMapFBO!!.activeTexture = 1
 
         /** for post effects image processing  */
-        glDisable(GL20.GL_DEPTH_TEST)
-        /*val steps = ArrayList<PostProcessStep>()
+         glDisable(GL_DEPTH_TEST)
+        val steps = ArrayList<PostProcessStep>()
         if (!settingsManager.isIn_2D_Mode) {
             steps.add(PostProcessStep(refractionMapFBO!!.fboTexture!!,
                              null,
@@ -563,7 +566,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         mainRenderFBO!!.activeTexture = 0
         mainRenderFBO!!.resolve2FBO(transiteFBO!!)
 
-        val extEffects = !settingsManager.isIn_2D_Mode
+        val extEffects = false //todo: !settingsManager.isIn_2D_Mode
         steps.clear()
 
         if (!extEffects) {
@@ -577,8 +580,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             renderPostEffectsBuffer(null, steps)
 
-            //todo: implement correctly
-            *//*steps.clear()
+            /*steps.clear()
             steps.add(PostProcessStep(transiteFBO2!!.fboTexture!!,
                     null,
                     GameConst.DOF_EFFECT,
@@ -591,10 +593,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                         }
                     } ))
 
-            renderPostEffectsBuffer(null, steps)*//*
+            renderPostEffectsBuffer(null, steps)*/
         }
 
-        steps.clear()*/
+        steps.clear()
 
         /** fix for 2D-UI bug */
         glBindVertexArray(0)
@@ -637,30 +639,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             program.deleteProgram()
         shaders.clear()
     }
-
-    /*fun createZoomCameraAnimation(zoomLevel: Float): GLAnimation? {
-        val animation = GLAnimation(zoomLevel, CAMERA_ZOOM_ANIMATION_DURATION)
-        animation.luaEngine = luaEngine
-
-        return animation
-    }*/
-
-    /*fun createTranslateAnimation(fromX: Float, toX: Float, fromY: Float, toY: Float, fromZ: Float, toZ: Float, duration: Long): GLAnimation? {
-        val animation = GLAnimation(fromX, toX, fromY, toY, fromZ, toZ, duration)
-        animation.luaEngine = luaEngine
-
-        return animation
-    }
-
-    fun createRotateAnimation(rotationAngle: Float, rotationAxesMask: Short, animationDuration: Long): GLAnimation? {
-        val animation = GLAnimation(rotationAngle, rotationAxesMask, animationDuration)
-        animation.luaEngine = luaEngine
-
-        return animation
-    }
-
-    fun createTransform() = Matrix4f()
-    fun createVector3f(vx: Float, vy: Float, vz: Float) = Vector3f(vx, vy, vz) */
 
     override fun onSurfaceCreated() { create() }
     override fun onSurfaceChanged(width: Int, height: Int) { resize(width, height) }

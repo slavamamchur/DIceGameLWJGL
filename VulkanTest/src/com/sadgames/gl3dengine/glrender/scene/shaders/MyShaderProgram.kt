@@ -15,7 +15,7 @@ import java.nio.IntBuffer
 class MyShaderProgram internal constructor(private val programList: Map<Int, String>) {
 
     companion object {
-        @JvmField var prependCode = "#version 410\n#define GLES330\n"
+        @JvmField var prependCode = "#version 330\n#define GLES330\n"
 
         @JvmField val programTypes: MutableMap<Int, String> = object: HashMap<Int, String>() {
             init {

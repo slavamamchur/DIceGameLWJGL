@@ -106,7 +106,7 @@ import static com.sadgames.gl3dengine.gamelogic.client.GameConst.TERRAIN_MESH_OB
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.WATER_MESH_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.FOREST_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.GUI_OBJECT;
-import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT_32;
+import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.WATER_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.TEXTURE_RESOLUTION_SCALE;
 import static com.sadgames.gl3dengine.glrender.scene.animation.GLAnimation.ROTATE_BY_Z;
@@ -331,7 +331,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
     public void onInitPhysics(DynamicsWorld dynamicsWorld) { if (dynamicsWorld != null) dynamicsWorld.setGravity(gameEntity._getGravity()); }
 
     @Override
-    public void onLoadSceneObjects(GLRendererInterface<SceneObjectsTreeItem> glScene) { //todo: run in separate thread and queue into gl thread
+    public void onLoadSceneObjects(GLRendererInterface<SceneObjectsTreeItem> glScene) {
         TextureCache textureCache = TextureCache.INSTANCE;
         textureCache.clearCache();
         textureCache.getItem(ROAD_TEXTURE_NAME);
@@ -340,18 +340,22 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         textureCache.getItem(MAP_BACKGROUND_TEXTURE_NAME);
         glScene.setBackgroundTextureName(MAP_BACKGROUND_TEXTURE_NAME);
 
+        /** sky-dome */
+        AbstractTexture skyDomeTexture = BitmapTexture.createInstance(SKY_DOME_TEXTURE_NAME, false);
+        textureCache.putItem(skyDomeTexture);
+
+        AbstractSkyObject skyDomeObject = new SkyDomeObject(skyDomeTexture, glScene);
+        skyDomeObject.setItemName(SKY_BOX_CUBE_MAP_OBJECT);
+        skyDomeObject.loadObject();
+        glScene.getScene().putChild(skyDomeObject, skyDomeObject.getItemName());
+
         /** Terrain map */
-        PNodeObject terrain = new GameMap(Objects.requireNonNull(glScene.getCachedShader(TERRAIN_OBJECT_32)), gameEntity);
+        PNodeObject terrain = new GameMap(Objects.requireNonNull(glScene.getCachedShader(TERRAIN_OBJECT)), gameEntity);
         terrain.loadObject();
         terrain.setGlBlendingMap(createBlendingMap());
         terrain.createRigidBody();
         PhysicalWorld.INSTANCE.getPhysicalWorld().addRigidBody(terrain.get_body());
         glScene.getScene().putChild(terrain, TERRAIN_MESH_OBJECT);
-
-        /** Water plane */
-        AbstractGL3DObject water = new WaterObject(Objects.requireNonNull(glScene.getCachedShader(WATER_OBJECT)));
-        water.loadObject();
-        glScene.getScene().putChild(water, WATER_MESH_OBJECT);
 
         loadGameItems(glScene);
         luaEngine.get(ON_CREATE_DYNAMIC_ITEMS_HANDLER).call(CoerceJavaToLua.coerce(gameEntity), CoerceJavaToLua.coerce(gameInstanceEntity));
@@ -372,6 +376,11 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         wind.setRollback(true);
         forest.setAnimation(wind);
 
+        /** Water plane -> after terrain to produce depth buffer first*/
+        AbstractGL3DObject water = new WaterObject(Objects.requireNonNull(glScene.getCachedShader(WATER_OBJECT)));
+        water.loadObject();
+        glScene.getScene().putChild(water, WATER_MESH_OBJECT);
+
         /*PlanetObject testPlanet = new PlanetObject(0.75f, "earth_difuse_2k_astrolab.png", glScene);
         Transform transform = new Transform();
         transform.setIdentity();
@@ -381,15 +390,6 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         testPlanet.loadObject();
         //scaleM(testPlanet.getTransformationMatrix(), 0, 2f, 2f, 2f);
         terrain.putChild(testPlanet, "PLANET");*/
-
-        /** sky-dome */
-        AbstractTexture skyDomeTexture = BitmapTexture.createInstance(SKY_DOME_TEXTURE_NAME, false);
-        textureCache.putItem(skyDomeTexture);
-
-        AbstractSkyObject skyDomeObject = new SkyDomeObject(skyDomeTexture, glScene);
-        skyDomeObject.setItemName(SKY_BOX_CUBE_MAP_OBJECT);
-        skyDomeObject.loadObject();
-        glScene.getScene().putChild(skyDomeObject, skyDomeObject.getItemName());
 
         //todo: mix sun color with pixel using rays map and brightness as alpha ???
 
@@ -404,7 +404,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         /** mini-map gui-box */
         if (!getSettingsManager().isIn_2D_Mode()) {
             GUI2DImageObject miniMapView = new GUI2DImageObject(glScene.getCachedShader(GUI_OBJECT),
-                                                                new Vector4f(-1, 1, -0.75f, 0.5f),
+                                                                new Vector4f(-1, 1, -0.71f, 0.5f),
                                                                 true);
             miniMapView.loadObject();
             miniMapView.setGlTexture(terrain.getGlTexture());

@@ -38,4 +38,6 @@ void main() {
     highp vec4 result = pack(normalizedDistance);
 
     gl_FragColor = result;*/
+
+    //gl_FragDepth = gl_FragCoord.z;
 }

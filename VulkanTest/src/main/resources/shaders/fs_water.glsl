@@ -147,7 +147,7 @@ vec3 calcNormal(vec2 uv) {
     return result;
 }
 
-vec2 clipSpace2NDC(vec4 cs) {
+vec2 clipSpace2NDC(vec4 cs) {  //todo: error here ??? (1 - Y) ???
     return clamp(cs.xy / cs.w * 0.5 + 0.5, 0.002, 0.998);
 }
 
@@ -204,19 +204,22 @@ void main()
 
       highp float shadowRate = 1.0;
       if (vShadowCoord.w > 0.0) {
-        shadowRate = shadowPCF(n_normal, 4.0); //todo: use param for pcf quality level
+        shadowRate = shadowPCF(n_normal, 4.0);
         shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
       }
 
+      //breethe
       float alpha = clamp(depthFactor * 32.0, 0.0, 1.0);
       if (alpha <= 0.9) {
             diffuseColor = mix(diffuseColor, vec4(1.0), 1.0 - alpha);
       }
 
-      vec4 fragColor = calcPhongLightingMolel(n_normal, n_lightvector, n_lookvector, diffuseColor, shadowRate, 1.0);
-      fragColor.a = alpha;
+    //todo: rollback
+    vec4 fragColor = calcPhongLightingMolel(n_normal, n_lightvector, n_lookvector, waterColour/*diffuseColor*/, 1.0/*shadowRate*/, 1.0);
+      fragColor.a = 1.0; ////alpha;
 
-      float disFactor = 1.0;
+    //FOG
+    float disFactor = 1.0;
       if (u_is2DModeF != 1) {
         disFactor = smoothstep(3.5, 5.0, distance(center, wPosition.xz));
         fragColor.rgb = mix(fragColor.rgb, u_lightColour, disFactor);

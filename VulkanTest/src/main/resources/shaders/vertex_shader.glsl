@@ -10,7 +10,7 @@
 
 uniform mat4 u_MVP_Matrix;
 uniform mat4 u_MV_Matrix;
-uniform highp mat4 uShadowProjMatrix;
+uniform mat4 uShadowProjMatrix;
 uniform vec3 u_lightPosition;
 uniform vec3 u_camera;
 uniform int u_is2DMode;
@@ -20,7 +20,7 @@ varying vec3 wPosition;
 varying vec2 v_Texture;
 //varying vec3 v_Normal;
 varying float visibility;
-varying highp vec4 vShadowCoord;
+out vec4 vShadowCoord;
 varying float vdiffuse;
 varying float vspecular;
 
@@ -37,7 +37,7 @@ void main()
         wPosition.y = 0.0;
     }
 
-    highp vec4 updatedPos = vec4(wPosition, 1.0);
+    vec4 updatedPos = vec4(wPosition, 1.0);
     vec3 v_Position = (u_MV_Matrix * updatedPos).xyz;
 
     //Guard shading model --------------------------------------------------------------------------

@@ -1,9 +1,10 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
-import org.lwjgl.opengl.GL20.*
 import com.sadgames.gl3dengine.manager.AbstractEntityCacheManager.CachedEntity
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT
+import org.lwjgl.opengl.GL13
+import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengles.OESCompressedETC1RGB8Texture
 import java.util.*
 
@@ -52,7 +53,7 @@ abstract class AbstractTexture(width: Int,
         if (textureParams.filterMode.isMipMap) {
             val max = FloatArray(16)
             glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, max)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max[0].coerceAtMost(8f)) //todo: use quality settings
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max[0].coerceAtMost(16f)) //todo: use quality settings
         }
     }
 
@@ -82,14 +83,15 @@ abstract class AbstractTexture(width: Int,
         return  if (textureId <= 0)
                     -1
                 else {
-                    glActiveTexture(glTextureSlot)
+                    val realSlot = GL13.GL_TEXTURE0 + glTextureSlot
+                    glActiveTexture(realSlot)
 
                     /*if (this is CubeMapTexture)
                         glBindTextureCube(textureId)
                     else*/
                         glBindTexture(GL_TEXTURE_2D, textureId)
 
-                    glTextureSlot
+                    realSlot
                 }
     }
 

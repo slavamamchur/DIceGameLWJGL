@@ -11,7 +11,6 @@ class SkyDomeProgram: SkyBoxProgram() {
     override fun getFragmentShaderResId() = SKYDOME_FRAGMENT_SHADER
 
     override fun bindGlobalParams(scene: GLRendererInterface<SceneObjectsTreeItem>) {
-        super.bindGlobalParams(scene)
         params[LIGHT_COLOUR_PARAM_NAME]?.value = scene.lightSource!!.lightColour.toArray()
     }
 }

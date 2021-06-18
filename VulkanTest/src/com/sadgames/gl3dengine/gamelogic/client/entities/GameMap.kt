@@ -17,7 +17,7 @@ class GameMap(program: VBOShaderProgram, private val gameEntity: GameEntity?) :
         LinkedRESTObjectInterface {
 
     init {
-        isCubeMap = true
+        isCubeMap = false
         //castShadow = true
 
         glCubeMap = TextureCache[SAND_TEXTURE_NAME]
@@ -29,7 +29,7 @@ class GameMap(program: VBOShaderProgram, private val gameEntity: GameEntity?) :
 
     override fun loadReliefMap(): ByteBuffer? {
         return try {
-            val data = loadBitmapFromDB(textureResName, false) //true
+            val data = loadBitmapFromDB(textureResName, false)
             if (data != null) {
                 BufferUtils.createByteBuffer(data.size).put(data).rewind()
             }

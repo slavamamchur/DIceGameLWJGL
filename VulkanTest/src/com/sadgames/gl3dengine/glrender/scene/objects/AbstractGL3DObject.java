@@ -17,7 +17,6 @@ import java.nio.ShortBuffer;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
 
-import static org.lwjgl.opengl.GL30.*;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.ACTIVE_BLENDING_MAP_SLOT_PARAM_NAME;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.ACTIVE_DUDVMAP_SLOT_PARAM_NAME;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.ACTIVE_NORMALMAP_SLOT_PARAM_NAME;
@@ -41,6 +40,20 @@ import static com.sadgames.sysutils.common.MathUtils.rotateM;
 import static com.sadgames.sysutils.common.MathUtils.scaleM;
 import static com.sadgames.sysutils.common.MathUtils.setIdentityM;
 import static com.sadgames.sysutils.common.MathUtils.translateByVector;
+import static org.lwjgl.opengl.GL30.GL_ELEMENT_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL30.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL30.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL30.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL30.GL_TRIANGLE_STRIP;
+import static org.lwjgl.opengl.GL30.GL_UNSIGNED_SHORT;
+import static org.lwjgl.opengl.GL30.glActiveTexture;
+import static org.lwjgl.opengl.GL30.glBindBuffer;
+import static org.lwjgl.opengl.GL30.glBindTexture;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
+import static org.lwjgl.opengl.GL30.glDeleteVertexArrays;
+import static org.lwjgl.opengl.GL30.glDrawArrays;
+import static org.lwjgl.opengl.GL30.glDrawElements;
+import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements GLAnimation.IAnimatedObject {
 
@@ -337,7 +350,7 @@ public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements
     }
 
     public void unbindTexture(int slot) {
-        glActiveTexture(slot);
+        glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -377,7 +390,7 @@ public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements
         param = program.paramByName(ACTIVE_REFRACTION_MAP_SLOT_PARAM_NAME);
         if (param != null && param.getParamReference() >= 0 && hasCubeMap()) {
             param.setValue(glCubeMap.bind(textureSlotIndex));
-            //param.setValue((!StringUtils.isEmpty(glCubeMap.getTextureName()) ? textureCache.getItem(glCubeMap.getTextureName()) : glCubeMap).bind(textureSlotIndex));
+            param.setValue((!StringUtils.isEmpty(glCubeMap.getTextureName()) ? textureCache.getItem(glCubeMap.getTextureName()) : glCubeMap).bind(textureSlotIndex));
             textureSlotIndex++;
         }
 

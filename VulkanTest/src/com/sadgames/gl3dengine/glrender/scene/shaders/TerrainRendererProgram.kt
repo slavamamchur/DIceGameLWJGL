@@ -25,7 +25,7 @@ open class TerrainRendererProgram : VBOShaderProgram() {
         val graphicsQualityLevel = CommonUtils.settingsManager.graphicsQualityLevel
         val is2D = CommonUtils.settingsManager.isIn_2D_Mode
 
-        params[ACTIVE_BACKGROUND_SLOT_PARAM_NAME]?.value = TextureCache[scene.backgroundTextureName ?: ""]?.bind(BACKGROUND_TEXTURE_SLOT) ?: -1
+        params[ACTIVE_BACKGROUND_SLOT_PARAM_NAME]?.value = TextureCache[scene.backgroundTextureName ?: ""].bind(BACKGROUND_TEXTURE_SLOT)
         params[IS_2D_MODE_PARAM_NAME]?.value = if (is2D) 1 else 0
         params[IS_2D_MODEF_PARAM_NAME]?.value = if (is2D) 1 else 0
         params[ACTIVE_SHADOWMAP_SLOT_PARAM_NAME]?.value = scene.shadowMapFBO!!.fboTexture?.bind(FBO_TEXTURE_SLOT)

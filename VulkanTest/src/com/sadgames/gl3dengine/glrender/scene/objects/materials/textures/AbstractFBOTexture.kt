@@ -1,11 +1,11 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
-import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.*
-import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureWrap.*
+import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureFilter
+import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureWrap
 
 
 abstract class AbstractFBOTexture(width: Int, height: Int):
-                AbstractTexture(width, height, null, null, TextureParams(TextureFilter.Linear, ClampToEdge)) {
+                AbstractTexture(width, height, null, null, TextureParams(TextureFilter.Linear, TextureWrap.ClampToEdge)) {
 
     abstract fun attach()
 

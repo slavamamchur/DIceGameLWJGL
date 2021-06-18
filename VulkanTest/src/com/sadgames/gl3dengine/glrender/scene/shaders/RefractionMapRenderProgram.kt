@@ -5,7 +5,7 @@ import com.sadgames.gl3dengine.glrender.GLRendererInterface
 import com.sadgames.gl3dengine.glrender.scene.objects.AbstractGL3DObject
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 import com.sadgames.gl3dengine.glrender.scene.objects.generated.ForestGenerator
-import com.sadgames.sysutils.common.CommonUtils.settingsManager
+import com.sadgames.gl3dengine.manager.GDXPreferences
 import com.sadgames.sysutils.common.Mat4x4
 import com.sadgames.sysutils.common.toInt
 
@@ -18,8 +18,8 @@ class RefractionMapRenderProgram : VBOShaderProgram() {
         val lightSource = scene.lightSource
 
         params[LIGHT_POSITION_PARAM_NAME]?.value = lightSource!!.lightPosInEyeSpace
-        params[LIGHT_COLOUR_PARAM_NAME]?.value = lightSource!!.lightColour
-        params[IS_2D_MODEF_PARAM_NAME]?.value = settingsManager.isIn_2D_Mode.toInt()
+        params[LIGHT_COLOUR_PARAM_NAME]?.value = lightSource.lightColour
+        params[IS_2D_MODEF_PARAM_NAME]?.value = GDXPreferences.isIn_2D_Mode.toInt()
     }
 
     override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {

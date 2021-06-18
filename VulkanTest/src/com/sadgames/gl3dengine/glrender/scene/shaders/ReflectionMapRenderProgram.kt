@@ -29,7 +29,7 @@ open class ReflectionMapRenderProgram : VBOShaderProgram() {
         val lightSource = scene.lightSource
 
         val title = TextureCache[ROAD_TEXTURE_NAME]
-        if (title != null && title.textureId != 0) {
+        if (title.textureId != 0) {
             title.bind(ROAD_TILE_TEXTURE_SLOT)
             params[ACTIVE_ROAD_TEXTURE_SLOT_PARAM_NAME]?.value = ROAD_TILE_TEXTURE_SLOT
         }
