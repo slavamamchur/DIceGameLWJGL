@@ -83,15 +83,14 @@ abstract class AbstractTexture(width: Int,
         return  if (textureId <= 0)
                     -1
                 else {
-                    val realSlot = GL13.GL_TEXTURE0 + glTextureSlot
-                    glActiveTexture(realSlot)
+                    glActiveTexture(GL13.GL_TEXTURE0 + glTextureSlot)
 
                     /*if (this is CubeMapTexture)
                         glBindTextureCube(textureId)
                     else*/
                         glBindTexture(GL_TEXTURE_2D, textureId)
 
-                    realSlot
+                    glTextureSlot
                 }
     }
 

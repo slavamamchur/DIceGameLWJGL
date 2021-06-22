@@ -390,7 +390,7 @@ public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements
         param = program.paramByName(ACTIVE_REFRACTION_MAP_SLOT_PARAM_NAME);
         if (param != null && param.getParamReference() >= 0 && hasCubeMap()) {
             param.setValue(glCubeMap.bind(textureSlotIndex));
-            param.setValue((!StringUtils.isEmpty(glCubeMap.getTextureName()) ? textureCache.getItem(glCubeMap.getTextureName()) : glCubeMap).bind(textureSlotIndex));
+            param.setValue(glCubeMap.bind(textureSlotIndex));
             textureSlotIndex++;
         }
 

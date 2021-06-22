@@ -33,7 +33,7 @@ class ColorBufferFBO @JvmOverloads constructor(width: Int, height: Int, clearCol
                     val colorBuffer = IntArray(1)
                     glGenRenderbuffers(colorBuffer)
                     glBindRenderbuffer(GL_RENDERBUFFER, colorBuffer[0])
-                    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, width, height) //todo: use settings value
+                    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, width, height)
                     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + num, GL_RENDERBUFFER, colorBuffer[0])
                     colorBuffers.add(colorBuffer[0])
 

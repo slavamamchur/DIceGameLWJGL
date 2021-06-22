@@ -10,7 +10,7 @@ abstract class AbstractFBOTexture(width: Int, height: Int):
     abstract fun attach()
 
     operator fun invoke(slot: Int, attach2FBO: Boolean = false): AbstractTexture {
-        bind(slot)
+        //bind(slot) //todo: do not bind???
         if (attach2FBO) attach()
 
         return this

@@ -34,10 +34,8 @@ class FixedIsometricCamera(eyeX: Float, eyeY: Float, eyeZ: Float, pitch: Float, 
     override fun rotateY(angle: Float) {
         val direction = cameraDirection
 
-        cameraPosition.x =
-            cos(angle) * (cameraPosition.x - direction.x) - sin(angle) * (cameraPosition.z - direction.z) + direction.x
-        cameraPosition.z =
-            sin(angle) * (cameraPosition.x - direction.x) + cos(angle) * (cameraPosition.z - direction.z) + direction.z
+        cameraPosition.x = cos(angle) * (cameraPosition.x - direction.x) - sin(angle) * (cameraPosition.z - direction.z) + direction.x
+        cameraPosition.z = sin(angle) * (cameraPosition.x - direction.x) + cos(angle) * (cameraPosition.z - direction.z) + direction.z
 
         directSetYawByDirection(cameraDirection)
     }

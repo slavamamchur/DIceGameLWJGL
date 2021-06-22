@@ -106,7 +106,7 @@ import static com.sadgames.gl3dengine.gamelogic.client.GameConst.TERRAIN_MESH_OB
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.WATER_MESH_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.FOREST_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.GUI_OBJECT;
-import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT;
+import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT_32;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.WATER_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.TEXTURE_RESOLUTION_SCALE;
 import static com.sadgames.gl3dengine.glrender.scene.animation.GLAnimation.ROTATE_BY_Z;
@@ -350,7 +350,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         glScene.getScene().putChild(skyDomeObject, skyDomeObject.getItemName());
 
         /** Terrain map */
-        PNodeObject terrain = new GameMap(Objects.requireNonNull(glScene.getCachedShader(TERRAIN_OBJECT)), gameEntity);
+        PNodeObject terrain = new GameMap(Objects.requireNonNull(glScene.getCachedShader(TERRAIN_OBJECT_32)), gameEntity);
         terrain.loadObject();
         terrain.setGlBlendingMap(createBlendingMap());
         terrain.createRigidBody();

@@ -31,9 +31,9 @@ object DesktopLauncher {
     private var renderer: GLRendererInterface<SceneObjectsTreeItem>? = null
 
     private fun initWindow(isFullScreen: Boolean) {
-        glfwDefaultWindowHints() // optional, the current window hints are already the default
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE) // the window will stay hidden after creation
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE) // the window will be resizable
+        glfwDefaultWindowHints()
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+        //glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -41,7 +41,7 @@ object DesktopLauncher {
         glfwWindowHint(GLFW_SAMPLES, if (GDXPreferences.graphicsQualityLevel == GraphicsQuality.ULTRA) 8 else 0)
 
         val monitor = if (isFullScreen) glfwGetPrimaryMonitor() else NULL
-        window = glfwCreateWindow(1920, 1080, "Dice game!", monitor, NULL)
+        window = glfwCreateWindow(1920, 1080, "Dice game!", monitor, NULL) //todo: select resolution from obtained list
         if (window == NULL)
             throw RuntimeException("Failed to create the GLFW window")
 

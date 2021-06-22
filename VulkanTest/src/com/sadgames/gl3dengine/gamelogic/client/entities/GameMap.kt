@@ -17,7 +17,7 @@ class GameMap(program: VBOShaderProgram, private val gameEntity: GameEntity?) :
         LinkedRESTObjectInterface {
 
     init {
-        isCubeMap = false
+        isCubeMap = true
         //castShadow = true
 
         glCubeMap = TextureCache[SAND_TEXTURE_NAME]

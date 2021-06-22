@@ -24,7 +24,6 @@ import com.sadgames.gl3dengine.glrender.scene.postprocess.PostProcessStep
 import com.sadgames.gl3dengine.glrender.scene.shaders.*
 import com.sadgames.gl3dengine.manager.GDXPreferences
 import com.sadgames.gl3dengine.manager.TextureCache
-import com.sadgames.gl3dengine.physics.PhysicalWorld
 import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
 import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.vulkan.newclass.GLVersion
@@ -42,8 +41,6 @@ import javax.vecmath.Vector4f
 import kotlin.math.roundToInt
 
 open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
-
-    //companion object { val lockObj = Any() }
 
     private var savedCamera: GLCamera? = null
     private var firstRun = true
@@ -68,7 +65,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     override var program: VBOShaderProgram? = null
     override var lightSource: GLLightSource? = null;
     override val scene: GLScene get() = this
-    //override val physicalWorldObject: DiscreteDynamicsWorld? get() = PhysicalWorld.physicalWorld
     override var luaEngine: Globals? = null
     override var glExtensions = ""
 
@@ -82,8 +78,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             lightSource?.mCamera = field!!
         }
-
-    //override val lockObject; get() = lockObj
 
     var mDisplayWidth = 0; private set
     var mDisplayHeight = 0; private set
@@ -108,19 +102,12 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         gameEventsCallBackListener?.onInitLightSource(lightSource)
     }
 
-    private fun initPhysics() { val instance = PhysicalWorld }
-
     private fun scenePrepare() {
-        //initScene()
-        //initPhysics()
-
-        //graphicsQualityLevel = settingsManager.graphicsQualityLevel
         glEnable(GL_MULTISAMPLE);
         glExtensions = extractGlExtensions(extractVersion())
         hasDepthTextureExtension = checkDepthTextureExtension()
 
         glEnable(GL20.GL_CULL_FACE)
-        glEnable(GL20.GL_DEPTH_TEST)
 
         loadScene()
 
@@ -140,7 +127,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         return if (program == null) {
             program = when (type) {
-                GLObjectType.TERRAIN_OBJECT -> TerrainRendererProgram()
+                GLObjectType.TERRAIN_OBJECT_32 -> Gl32TerrainRenderer()
                 GLObjectType.WATER_OBJECT -> WaterRendererProgram()
                 GLObjectType.GEN_TERRAIN_OBJECT -> GenTerrainProgram()
                 GLObjectType.SHADOW_MAP_OBJECT -> ShadowMapProgram()
@@ -483,13 +470,15 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         simulatePhysics(System.currentTimeMillis())
         calculateSceneTransformations()
 
-        /** Render ShadowMap  */
         glEnable(GL_DEPTH_TEST)
+
+        /** Render ShadowMap  */
         glCullFace(GL_FRONT)
         renderItems(shadowMapFBO,
                     getCachedShader(GLObjectType.SHADOW_MAP_OBJECT)!!, {drawObjectIntoShadowMap(it)},
                     {condition -> (condition as AbstractGL3DObject).isCastShadow})
         glCullFace(GL_BACK)
+
         glEnable(GL20.GL_BLEND)
         glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
         glBlendEquation(GL_FUNC_ADD)
@@ -525,18 +514,24 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                 glDisable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
         }
 
-        getObject(GameConst.MINI_MAP_OBJECT)?.glTexture = shadowMapFBO?.fboTexture
+
+        //getObject(GameConst.MINI_MAP_OBJECT)?.glTexture = (refractionMapFBO!! as ColorBufferFBO).depthTexture
         /** render colorBuffer  */
+        //todo: 1.lens is not rendered
+        //todo: 2.water clipping bug
+        //todo: 3.drawing path bug
+        glEnable(GL_MULTISAMPLE)
         renderItems(mainRenderFBO, null,
                     { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoColorBuffer(sceneObject!!) }, { true })
 
+        glDisable(GL_MULTISAMPLE)
+        glDisable(GL_DEPTH_TEST)
+        val steps = ArrayList<PostProcessStep>()
         mainRenderFBO!!.activeTexture = 1
         mainRenderFBO!!.resolve2FBO(transiteFBO!!)
         refractionMapFBO!!.activeTexture = 1
 
-        /** for post effects image processing  */
-         glDisable(GL_DEPTH_TEST)
-        val steps = ArrayList<PostProcessStep>()
+        /** for post effects image processing */
         if (!settingsManager.isIn_2D_Mode) {
             steps.add(PostProcessStep(refractionMapFBO!!.fboTexture!!,
                              null,
@@ -566,7 +561,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         mainRenderFBO!!.activeTexture = 0
         mainRenderFBO!!.resolve2FBO(transiteFBO!!)
 
-        val extEffects = false //todo: !settingsManager.isIn_2D_Mode
+        val extEffects = !settingsManager.isIn_2D_Mode
         steps.clear()
 
         if (!extEffects) {

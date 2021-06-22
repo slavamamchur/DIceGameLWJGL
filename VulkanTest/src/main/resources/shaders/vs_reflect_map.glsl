@@ -1,18 +1,9 @@
-#ifdef CLIP_PLANE
 #extension GL_EXT_clip_cull_distance : enable
-#endif
 
-#ifdef GLES330
-    layout(location = 0) in vec3 a_Normal;
-    layout(location = 1) in vec3 a_Position;
-    layout(location = 2) in vec2 a_Texture;
-    layout(location = 3) in vec4 aOffset;
-#else
-    attribute vec3 a_Normal;
-    attribute vec3 a_Position;
-    attribute vec2 a_Texture;
-    attribute vec4 aOffset;
-#endif
+layout(location = 0) in vec3 a_Normal;
+layout(location = 1) in vec3 a_Position;
+layout(location = 2) in vec2 a_Texture;
+layout(location = 3) in vec4 aOffset;
 
 uniform mat4 u_MVP_Matrix;
 uniform mat4 u_MV_Matrix;
@@ -20,7 +11,6 @@ uniform vec3 u_lightPosition;
 uniform mat4 uMMatrix;
 uniform int u_isObjectGroup;
 
-varying vec3 v_wPosition;
 varying vec2 v_Texture;
 varying float vdiffuse;
 
@@ -29,7 +19,6 @@ const vec4 uClipPlane = vec4(0.0, 1.0, 0.0, 0.0);
 void main()
 {
     vec4 modelPos = uMMatrix * vec4(a_Position, 1.0);
-    v_wPosition = a_Position;
     v_Texture = a_Texture;
 
     vec4 pPosition = vec4(a_Position, 1.0);
@@ -42,9 +31,7 @@ void main()
         modelPos = pPosition;
     }
 
-    #ifdef CLIP_PLANE
-        gl_ClipDistance[0] = dot(modelPos, uClipPlane);
-    #endif
+    gl_ClipDistance[0] = dot(modelPos, uClipPlane);
 
     vec3 v_Normal;
     v_Normal = (u_MV_Matrix * pNormal).xyz;

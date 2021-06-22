@@ -1,12 +1,10 @@
 precision mediump float;
 
-#ifdef GLES330
-    layout (location = 0) out vec4 colorBuffer;
-    layout (location = 1) out vec4 lightBuffer;
-#endif
+layout (location = 0) out vec4 colorBuffer;
+layout (location = 1) out vec4 lightBuffer;
 
 uniform sampler2D u_TextureUnit;
-uniform sampler2D uShadowTexture; //todo: new shadow error fix (float32 ? or precision)
+uniform sampler2D uShadowTexture;
 
 uniform float u_AmbientRate;
 uniform float u_DiffuseRate;
@@ -48,15 +46,9 @@ varying float vspecular;
 //}
 
 float calcShadowRate(/*vec3 nNormal,*/ vec2 offSet) {
-        float bias = 0.00001; //calcDynamicBias(0.001, nNormal); // (0.00005)
+        float bias = 0.00005; //calcDynamicBias(0.001, nNormal);
         vec4 shadowMapPosition = vShadowCoord;
-
-        #ifdef GLES330
-            vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
-        #else
-            vec4 packedZValue = texture2D(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)).st);
-        #endif
-
+        vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
         //float distanceFromLight = unpack(packedZValue);
 
         return (/*distanceFromLight*/packedZValue.r > (shadowMapPosition.z /** 255.0*/ - bias)) ? 1.0 : 0.0;

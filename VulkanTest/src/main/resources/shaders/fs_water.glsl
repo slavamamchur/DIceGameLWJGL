@@ -1,9 +1,7 @@
 precision mediump float;
 
-#ifdef GLES330
-    layout (location = 0) out vec4 colorBuffer;
-    layout (location = 1) out vec4 lightBuffer;
-#endif
+layout (location = 0) out vec4 colorBuffer;
+layout (location = 1) out vec4 lightBuffer;
 
 uniform mat4 u_MV_MatrixF;
 
@@ -31,11 +29,9 @@ varying vec3 lightvector;
 varying vec3 lookvector;
 varying highp vec4 vShadowCoord;
 varying vec4 clipSpace;
-#ifdef GLES330
 varying vec3 surfaceNormal;
 varying vec3 tangent;
 varying vec4 clipSpaceGrid;
-#endif
 
 const vec4 skyColour = vec4(0.0, 0.64, 0.88, 1.0);
 const vec4 waterColour = vec4(0, 0.5, 0.3, 1.0);
@@ -60,23 +56,17 @@ highp float unpack (highp vec4 packedZValue) {
 
 float calcShadowRate(vec3 nNormal, vec2 offSet) {
         highp float bias = 0.00005; //calcDynamicBias(0.001, nNormal);
-        highp vec4 shadowMapPosition = vShadowCoord/* / vShadowCoord.w - > for spot lights only (low priority) */;
-
-        #ifdef GLES330
-            highp vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
-        #else
-            highp vec4 packedZValue = texture2D(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)).st);
-        #endif
-
+        highp vec4 shadowMapPosition = vShadowCoord /*todo: / vShadowCoord.w - > for spot lights only (low priority) */;
+        highp vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.00005, 0.0)));
         highp float distanceFromLight = unpack(packedZValue);
 
-        return float(distanceFromLight > (shadowMapPosition.z /** 255.0*/ - bias));
+        return distanceFromLight > (shadowMapPosition.z /** 255.0*/ - bias) ? 1.0 : 0.0;
 }
 
-float shadowPCF(vec3 nNormal, float n) { //pcf nxn
+float shadowPCF(vec3 nNormal, float n) {
 	float shadow = 1.0;
 
-	float cnt = (n - 1.0) / 2.0;
+	float cnt = (n - 1.0) * 0.5;
 	for (float y = -cnt; y <= cnt; y = y + 1.0) {
 		for (float x = -cnt; x <= cnt; x = x + 1.0) {
 			shadow += calcShadowRate(nNormal, vec2(x,y));
@@ -129,25 +119,18 @@ float smoothlyStep(float edge0, float edge1, float x){
 }
 
 vec3 calcNormal(vec2 uv) {
-    vec3 result = 2.0 * texture2D(u_NormalMapUnit, uv).rbg - 1.0; //vec3(normalMapColour.r * 2.0 - 1.0, normalMapColour.b, normalMapColour.g * 2.0 - 1.0);
+    vec3 result = 2.0 * texture2D(u_NormalMapUnit, uv).rbg - 1.0;
     result = (u_MV_MatrixF * vec4(result, 0.0)).xyz;
 
-    #ifdef GLES330
-        vec3 unitNormal = normalize(surfaceNormal);
-        vec3 biTangent = normalize(cross(tangent, unitNormal));
-        result = mat3(tangent, unitNormal, biTangent) * result;
-    #endif
+    vec3 unitNormal = normalize(surfaceNormal);
+    vec3 biTangent = normalize(cross(tangent, unitNormal));
 
-    result = normalize(result);
+    result = normalize(mat3(tangent, unitNormal, biTangent) * result);
 
-    if (!gl_FrontFacing) {
-        result = -result;
-    }
-
-    return result;
+    return gl_FrontFacing ? result : -result;
 }
 
-vec2 clipSpace2NDC(vec4 cs) {  //todo: error here ??? (1 - Y) ???
+vec2 clipSpace2NDC(vec4 cs) {
     return clamp(cs.xy / cs.w * 0.5 + 0.5, 0.002, 0.998);
 }
 
@@ -187,11 +170,8 @@ void main()
           vec4 refractionColor;
 
           if (u_hasReflectMap == 1) {
-            #ifdef GLES330
-                ndc = clipSpace2NDC(clipSpaceGrid);
-            #endif
-            vec2 reflectMapCoords = vec2(ndc.x, 1.0 - ndc.y) + totalDistortion;
-            vec4 reflectionColor = texture2D(u_ReflectionMapUnit, clamp(reflectMapCoords, 0.001, 0.9999));
+            ndc = clipSpace2NDC(clipSpaceGrid);
+            vec4 reflectionColor = texture2D(u_ReflectionMapUnit, clamp(vec2(ndc.x, 1.0 - ndc.y) + totalDistortion, 0.001, 0.9999));
             refractionColor = texture2D(u_RefractionMapUnit, clamp(ndc + totalDistortion, 0.001, 0.9999));
             refractionColor = mix(refractionColor, waterColour, depthFactor * 0.75);
             diffuseColor = mix(refractionColor, reflectionColor, reflectiveFactor);
@@ -214,28 +194,23 @@ void main()
             diffuseColor = mix(diffuseColor, vec4(1.0), 1.0 - alpha);
       }
 
-    //todo: rollback
-    vec4 fragColor = calcPhongLightingMolel(n_normal, n_lightvector, n_lookvector, waterColour/*diffuseColor*/, 1.0/*shadowRate*/, 1.0);
-      fragColor.a = 1.0; ////alpha;
+    vec4 fragColor = calcPhongLightingMolel(n_normal, n_lightvector, n_lookvector, diffuseColor, shadowRate, 1.0);
+      fragColor.a = alpha;
 
     //FOG
     float disFactor = 1.0;
-      if (u_is2DModeF != 1) {
+    if (u_is2DModeF != 1) {
         disFactor = smoothstep(3.5, 5.0, distance(center, wPosition.xz));
         fragColor.rgb = mix(fragColor.rgb, u_lightColour, disFactor);
-      }
+    }
 
-    #ifdef GLES330
-        colorBuffer = fragColor;
+    colorBuffer = fragColor;
 
-        float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
-        if (brightness > 0.7 && disFactor < 0.9) {
-            lightBuffer = fragColor;
-        }
-        else {
-            lightBuffer = vec4(0.0);
-        }
-    #else
-        gl_FragColor = fragColor;
-    #endif
+    float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
+    if (brightness > 0.7 && disFactor < 0.9) {
+        lightBuffer = fragColor;
+    }
+    else {
+        lightBuffer = vec4(0.0);
+    }
 }

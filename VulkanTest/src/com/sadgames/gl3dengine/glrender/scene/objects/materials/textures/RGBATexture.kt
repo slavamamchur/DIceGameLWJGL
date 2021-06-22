@@ -1,6 +1,7 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL32.glFramebufferTexture
 
 open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int = 0): AbstractFBOTexture(width, height) {
 
@@ -16,5 +17,5 @@ open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int =
                 0)
     }
 
-    override fun attach() = glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachmentNum, GL_TEXTURE_2D, textureId, 0)
+    override fun attach() = glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attachmentNum, textureId, 0)
 }
