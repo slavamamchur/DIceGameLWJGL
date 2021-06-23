@@ -459,7 +459,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         gameControls.add(lbl);
     }*/
 
-    private AbstractTexture createBlendingMap() {
+    private AbstractTexture createBlendingMap() { //todo: increase resolution
         Pixmap blendMap;
 
         try (InputStream source = getResourceStream("/textures/blendingMap.png")) {

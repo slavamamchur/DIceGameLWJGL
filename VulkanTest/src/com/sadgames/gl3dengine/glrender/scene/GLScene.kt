@@ -510,16 +510,12 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                              || (condition as AbstractGL3DObject).isDrawInRaysBuffer)
                         })
 
-            if (isClippingPlanesSupported)
-                glDisable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
+            if (isClippingPlanesSupported) glDisable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
         }
 
 
         //getObject(GameConst.MINI_MAP_OBJECT)?.glTexture = (refractionMapFBO!! as ColorBufferFBO).depthTexture
         /** render colorBuffer  */
-        //todo: 1.lens is not rendered
-        //todo: 2.water clipping bug
-        //todo: 3.drawing path bug
         glEnable(GL_MULTISAMPLE)
         renderItems(mainRenderFBO, null,
                     { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoColorBuffer(sceneObject!!) }, { true })

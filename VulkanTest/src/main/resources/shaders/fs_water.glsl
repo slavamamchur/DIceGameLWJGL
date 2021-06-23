@@ -207,7 +207,7 @@ void main()
     colorBuffer = fragColor;
 
     float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
-    if (brightness > 0.7 && disFactor < 0.9) {
+    if (brightness > 0.9 && disFactor < 0.5) {
         lightBuffer = fragColor;
     }
     else {

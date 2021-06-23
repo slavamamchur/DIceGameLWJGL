@@ -48,6 +48,8 @@ varying float vspecular;
 float calcShadowRate(/*vec3 nNormal,*/ vec2 offSet) {
         float bias = 0.00005; //calcDynamicBias(0.001, nNormal);
         vec4 shadowMapPosition = vShadowCoord;
+        if (shadowMapPosition.z > 1.0)
+            shadowMapPosition.z = 1.0;
         vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
         //float distanceFromLight = unpack(packedZValue);
 
@@ -124,7 +126,7 @@ void main()
             lightBuffer = fragColor;
         }
         else {
-            lightBuffer = vec4(0.0);
+            lightBuffer = vec4(0.0, 0.0, 0.0, 1.0);
         }
       #else
         gl_FragColor = fragColor;

@@ -1,6 +1,7 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
-import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureFilter.*
+import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureFilter.Linear
+import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureFilter.MipMapLinearLinear
 import org.lwjgl.opengl.GL20
 
 class TextureParams(val filterMode: TextureFilter, val wrapMode: TextureWrap) {
@@ -37,7 +38,7 @@ class TextureParams(val filterMode: TextureFilter, val wrapMode: TextureWrap) {
     }
 
     enum class TextureWrap(val gLEnum: Int) {
-        MirroredRepeat(GL20.GL_MIRRORED_REPEAT), ClampToEdge(GL20.GL_CLAMP_TO_EDGE), Repeat(GL20.GL_REPEAT);
+        MirroredRepeat(GL20.GL_MIRRORED_REPEAT), ClampToEdge(GL20.GL_CLAMP_TO_EDGE), CLampToBorder(GL20.GL_CLAMP_TO_BORDER), Repeat(GL20.GL_REPEAT);
 
     }
 

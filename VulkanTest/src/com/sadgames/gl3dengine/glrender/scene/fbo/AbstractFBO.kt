@@ -28,7 +28,8 @@ abstract class AbstractFBO(var width: Int,
         for (i in (0 until attachmentsCnt))
             colorAttachments += attachTexture(i)
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        if (status != GL_FRAMEBUFFER_COMPLETE) {
             cleanUp()
             throw RuntimeException("GL_FRAMEBUFFER_COMPLETE failed, CANNOT use FBO")
         }
@@ -46,8 +47,8 @@ abstract class AbstractFBO(var width: Int,
         for (i in 0 until colorAttachments.size) {
             buffers[i] = GL_COLOR_ATTACHMENT0 + i
 
-            glActiveTexture(GL_TEXTURE0 + i)
-            glBindTexture(GL_TEXTURE_2D, 0)
+            //glActiveTexture(GL_TEXTURE0 + i)
+            //glBindTexture(GL_TEXTURE_2D, 0)
         }
 
         glDrawBuffers(buffers)

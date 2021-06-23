@@ -189,10 +189,12 @@ drawPath = function(blendMap, gameEntity)
             canvas:drawLine(fromPt.x, fromPt.y - 5, toPt.x, toPt.y - 5)
             canvas:drawLine(fromPt.x, fromPt.y + 5, toPt.x, toPt.y + 5)
 
+            --todo: 3.drawing path bug (move center to wp !!!)
             canvas:setColor(gameScene:getColor(0 , 0, 1.0, 1.0))
-            canvas:fillOval(fromPt.x, fromPt.y, 7.5 * scaleFactor, 7.5 * scaleFactor)
+            local radius = 7.5 * scaleFactor
+            canvas:fillOval(fromPt.x - radius / 2.0, fromPt.y - radius / 2.0, radius, radius)
             if i == (gameEntity:getGamePoints():size() - 2) then
-                canvas:fillOval(toPt.x, toPt.y, 7.5 * scaleFactor, 7.5 * scaleFactor)
+                canvas:fillOval(toPt.x - radius / 2.0, toPt.y - radius / 2.0, radius, radius)
             end
 
 --[[            for k = 0, 2 do

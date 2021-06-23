@@ -15,7 +15,7 @@ varying vec2 v_Texture;
 varying float vdiffuse;
 varying int  v_isObjectGroup;
 
-const vec4 uClipPlane = vec4(0.0, -1.0, 0.0, 0.0);
+const vec4 uClipPlane = vec4(0.0, -1.0, 0.0, 0.01);
 
 void main()
 {

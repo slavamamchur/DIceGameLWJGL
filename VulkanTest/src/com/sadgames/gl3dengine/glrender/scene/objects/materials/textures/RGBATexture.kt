@@ -8,11 +8,11 @@ open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int =
     @Throws(UnsupportedOperationException::class) override fun loadTexture(bitmap: BitmapWrapper?) {
         glTexImage2D(textureType,
                 0,
-                GL_RGBA,
+                GL_RGB,
                 width,
                 height,
                 0,
-                GL_RGBA,
+                GL_RGB,
                 GL_UNSIGNED_BYTE,
                 0)
     }
