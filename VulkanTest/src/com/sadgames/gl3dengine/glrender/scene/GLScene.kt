@@ -40,9 +40,9 @@ import javax.vecmath.Color4f
 import javax.vecmath.Vector4f
 import kotlin.math.roundToInt
 
-
-const val LIGHT_MAP = 1;
 const val COLOR_BUFFER = 0;
+const val LIGHT_MAP = 1;
+const val RAYS_MAP = 2;
 
 open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
 
@@ -185,7 +185,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         mainRenderFBO = ColorBufferFBO(mDisplayWidth,
                 mDisplayHeight,
                 Color4f(0.0f, 0.0f, 0.0f, 0.0f),
-                false,  2,
+                false,  2, //todo:
                 true)
             transiteFBO = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
                     Color4f(0.0f, 0.7f, 1.0f, 1.0f),
@@ -542,7 +542,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             renderPostEffectsBuffer(raysEffectFBO, steps)
 
-            mainRenderFBO(LIGHT_MAP).resolve2FBO(transiteFBO, GL_COLOR_BUFFER_BIT)
+            mainRenderFBO(LIGHT_MAP) blit transiteFBO
             steps.clear()
             steps.add(PostProcessStep(transiteFBO.fboTexture!!, null,
                        GameConst.BLUR_EFFECT or GameConst.CONTRAST_CHARGE_EFFECT,
@@ -555,7 +555,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             renderPostEffectsBuffer(hBlurFBO, steps)
         }
 
-        mainRenderFBO(COLOR_BUFFER) moveto transiteFBO
+        mainRenderFBO(COLOR_BUFFER) blit transiteFBO
 
         steps.clear()
         if (settingsManager.isIn_2D_Mode) {

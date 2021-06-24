@@ -17,8 +17,9 @@ abstract class AbstractFBO(var width: Int,
     private val fboID: Int = glGenFramebuffers()
 
     protected val colorBuffers: ArrayList<Int> = ArrayList()
+    protected val blitMask; get() = getBltMask()
 
-    var activeTexture = 0
+            var activeTexture = 0
     val colorAttachments: MutableList<AbstractTexture?> = ArrayList()
     val fboTexture; get() = colorAttachments[activeTexture]
 
@@ -38,7 +39,7 @@ abstract class AbstractFBO(var width: Int,
     }
 
     inline operator fun get(index: Int) = colorAttachments[index]
-    inline infix fun moveto(target: AbstractFBO) { this.resolve2FBO(target) }
+    inline infix fun blit(target: AbstractFBO) { this.resolve2FBO(target) }
 
     operator fun invoke(index: Int): AbstractFBO {
         activeTexture = index;
@@ -46,6 +47,7 @@ abstract class AbstractFBO(var width: Int,
     }
 
     protected abstract fun attachTexture(num: Int): AbstractTexture?
+    protected abstract fun getBltMask(): Int
 
     fun bind() {
         glBindTexture(GL_TEXTURE_2D, 0)
@@ -54,9 +56,6 @@ abstract class AbstractFBO(var width: Int,
         val buffers = IntArray(colorAttachments.size)
         for (i in 0 until colorAttachments.size) {
             buffers[i] = GL_COLOR_ATTACHMENT0 + i
-
-            //glActiveTexture(GL_TEXTURE0 + i)
-            //glBindTexture(GL_TEXTURE_2D, 0)
         }
 
         glDrawBuffers(buffers)
@@ -69,13 +68,13 @@ abstract class AbstractFBO(var width: Int,
 
     inline fun unbind() = glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    @JvmOverloads fun resolve2FBO(fbo: AbstractFBO, buffers: Int = GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT, texture: Int = activeTexture) {
+    @JvmOverloads fun resolve2FBO(fbo: AbstractFBO, texture: Int = activeTexture) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.fboID)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID)
         glReadBuffer(GL_COLOR_ATTACHMENT0 + texture)
         glBlitFramebuffer(0, 0, width, height,
                           0, 0, fbo.width, fbo.height,
-                          buffers,
+                          blitMask,
                           GL20.GL_NEAREST)
         unbind()
     }

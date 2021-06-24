@@ -46,7 +46,7 @@ varying float vspecular;
 //}
 
 float calcShadowRate(/*vec3 nNormal,*/ vec2 offSet) {
-        float bias = 0.00005; //calcDynamicBias(0.001, nNormal);
+        float bias = 0.00005; //todo: calcDynamicBias(0.001, nNormal); but as in youtube example
         vec4 shadowMapPosition = vShadowCoord;
         if (shadowMapPosition.z > 1.0)
             shadowMapPosition.z = 1.0;
