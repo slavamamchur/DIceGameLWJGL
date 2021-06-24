@@ -24,8 +24,8 @@ class RefractionMapRenderProgram : VBOShaderProgram() {
 
     override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
         val isObjectGroup = renderable is ForestGenerator
-        params[IS_OBJECT_GROUP_PARAM_NAME]?.value = isObjectGroup.toInt()
-        params[IS_OBJECT_GROUPF_PARAM_NAME]?.value = isObjectGroup.toInt()
+        //params[IS_OBJECT_GROUP_PARAM_NAME]?.value = isObjectGroup.toInt()
+        //params[IS_OBJECT_GROUPF_PARAM_NAME]?.value = isObjectGroup.toInt()
 
         if (isObjectGroup) {
             renderable.modelMatrix[13] -= 0.03530573f
@@ -35,7 +35,7 @@ class RefractionMapRenderProgram : VBOShaderProgram() {
         else
             params[MODEL_MATRIX_PARAM_NAME]?.value = renderable.modelMatrix
 
-        params[IS_LIGHT_SOURCE_PARAM_NAME]?.value = renderable.isLightSource.toInt()
+        //params[IS_LIGHT_SOURCE_PARAM_NAME]?.value = renderable.isLightSource.toInt()
     }
 
     override fun bindMVPMatrix(renderable: AbstractGL3DObject, viewMatrix: FloatArray, projectionMatrix: FloatArray) {

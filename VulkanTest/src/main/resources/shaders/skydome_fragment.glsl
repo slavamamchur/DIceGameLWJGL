@@ -3,6 +3,7 @@ precision mediump float;
 #ifdef GLES330
 	layout (location = 0) out vec4 colorBuffer;
 	layout (location = 1) out vec4 lightBuffer;
+	layout (location = 2) out vec4 raysBuffer;
 #endif
 
 uniform sampler2D u_TextureUnit;
@@ -38,6 +39,7 @@ void main()
 	  #ifdef GLES330
 		colorBuffer = fragColor;
 		lightBuffer = vec4(0.0);
+		raysBuffer = vec4(0.0);
 	  #else
 		gl_FragColor = fragColor;
 	  #endif

@@ -9,6 +9,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.SunObject
 import com.sadgames.sysutils.common.Mat4x4
 import com.sadgames.sysutils.common.MathUtils.applyViewMatrix
 import com.sadgames.sysutils.common.MathUtils.getMatrix4f
+import com.sadgames.sysutils.common.toInt
 
 class SunRendererProgram : GUIRendererProgram() {
 
@@ -32,11 +33,15 @@ class SunRendererProgram : GUIRendererProgram() {
         return (Mat4x4(projectionMatrix) * modelViewMat).value
     }
 
-    override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
-        val colour = (renderable as SunObject).lightSource!!.lightColour
-        //paramByName(LIGHT_COLOUR_PARAM_NAME).setParamValue(floatArrayOf(colour.x, colour.y, colour.z))
+    override fun bindGlobalParams(scene: GLRendererInterface<SceneObjectsTreeItem>) {
+        super.bindGlobalParams(scene)
 
-        params[ALPHA_SCALE_PARAM_NAME]?.value = renderable.getAlphaScale()
+        params[LIGHT_COLOUR_PARAM_NAME]?.value = scene.lightSource!!.lightColour
+    }
+
+    override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
+        params[ALPHA_SCALE_PARAM_NAME]?.value = (renderable as SunObject).getAlphaScale()
+        params[IS_LIGHT_SOURCE_PARAM_NAME]?.value = renderable.isLightSource.toInt()
     }
 
 }

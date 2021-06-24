@@ -185,7 +185,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         mainRenderFBO = ColorBufferFBO(mDisplayWidth,
                 mDisplayHeight,
                 Color4f(0.0f, 0.0f, 0.0f, 0.0f),
-                false,  2, //todo:
+                false,  3,
                 true)
             transiteFBO = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
                     Color4f(0.0f, 0.7f, 1.0f, 1.0f),
@@ -505,14 +505,11 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             camera!!.flipVertical()
 
-            /** Render ray map  todo: move to mainFBO*/
             renderItems(refractionMapFBO,
                         getCachedShader(GLObjectType.REFRACTION_MAP_OBJECT)!!,
                         { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoRefractionMap(sceneObject!!) },
-                        { condition ->
-                            (condition === getObject(GameConst.TERRAIN_MESH_OBJECT)
-                             || (condition as AbstractGL3DObject).isDrawInRaysBuffer)
-                        })
+                        { condition -> condition == getObject(GameConst.TERRAIN_MESH_OBJECT) }
+            )
 
             if (isClippingPlanesSupported) glDisable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
         }
@@ -530,7 +527,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         /** for post effects image processing */
         if (!settingsManager.isIn_2D_Mode) {
-            steps.add(PostProcessStep(refractionMapFBO!![1]!!,
+            mainRenderFBO(RAYS_MAP) blit transiteFBO
+            steps.add(PostProcessStep(transiteFBO.fboTexture!!,
                              null,
                                       GameConst.GOD_RAYS_POST_EFFECT,
                                       object : HashMap<String, Any>() {

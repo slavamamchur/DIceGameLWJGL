@@ -1,9 +1,8 @@
 precision mediump float;
 
-#ifdef GLES330
-    layout (location = 0) out vec4 colorBuffer;
-    layout (location = 1) out vec4 lightBuffer;
-#endif
+layout (location = 0) out vec4 colorBuffer;
+layout (location = 1) out vec4 lightBuffer;
+layout (location = 2) out vec4 raysBuffer;
 
 uniform mat4 u_MV_MatrixF;
 
@@ -198,7 +197,7 @@ void main()
 
       highp float shadowRate = 1.0;
       if (vShadowCoord.w > 0.0) {
-        shadowRate = shadowPCF(4.0); //todo: use param for pcf quality level
+        shadowRate = shadowPCF(4.0);
         shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
       }
 
@@ -208,19 +207,16 @@ void main()
         fragColor = mix(vec4(u_lightColour, 1.0), fragColor, visibility);
       }
 
-      #ifdef GLES330 //todo: skip if fog!!! -> check visibility param
-        float blur = clamp(abs(focalDistance  + v_Position.z) * focalRange, 0.0, 1.0);
-        colorBuffer = vec4(fragColor.rgb, 1.0);
+      float blur = clamp(abs(focalDistance  + v_Position.z) * focalRange, 0.0, 1.0);
+      colorBuffer = vec4(fragColor.rgb, 1.0);
 
-        float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
-        if (brightness > 0.7 && wPosition.y > 0.0 && visibility >= 0.9) {
+      float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
+      if (brightness > 0.7 && wPosition.y > 0.0 && visibility >= 0.9) {
             lightBuffer = fragColor;
-        }
-        else {
+      }
+      else {
             lightBuffer = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-      #else
-        gl_FragColor = fragColor;
-      #endif
+      }
 
+    raysBuffer = vec4(vec3(0.0), colorBuffer.a);
 }

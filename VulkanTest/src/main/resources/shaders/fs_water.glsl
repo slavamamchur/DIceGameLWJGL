@@ -2,6 +2,7 @@ precision mediump float;
 
 layout (location = 0) out vec4 colorBuffer;
 layout (location = 1) out vec4 lightBuffer;
+layout (location = 2) out vec4 raysBuffer;
 
 uniform mat4 u_MV_MatrixF;
 
@@ -213,4 +214,6 @@ void main()
     else {
         lightBuffer = vec4(0.0);
     }
+
+    raysBuffer = vec4(0.0);
 }

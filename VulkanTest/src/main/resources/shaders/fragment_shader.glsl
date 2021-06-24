@@ -2,6 +2,7 @@ precision mediump float;
 
 layout (location = 0) out vec4 colorBuffer;
 layout (location = 1) out vec4 lightBuffer;
+layout (location = 2) out vec4 raysBuffer;
 
 uniform sampler2D u_TextureUnit;
 uniform sampler2D uShadowTexture;
@@ -115,20 +116,18 @@ void main()
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
 
       if (u_is2DModeF == 0) {
-        fragColor = mix(vec4(u_lightColour, 1.0), fragColor, visibility);
+            fragColor = mix(vec4(u_lightColour, 1.0), fragColor, visibility);
       }
 
-      #ifdef GLES330
-        colorBuffer = fragColor;
+      colorBuffer = fragColor;
 
-        float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
-        if (brightness > 0.5 && visibility >= 0.9) {
+      float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
+      if (brightness > 0.5 && visibility >= 0.9) {
             lightBuffer = fragColor;
-        }
-        else {
+      }
+      else {
             lightBuffer = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-      #else
-        gl_FragColor = fragColor;
-      #endif
+      }
+
+      raysBuffer = vec4(vec3(0.0), colorBuffer.a);
 }

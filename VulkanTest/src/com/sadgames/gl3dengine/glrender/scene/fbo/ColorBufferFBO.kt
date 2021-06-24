@@ -41,7 +41,7 @@ class ColorBufferFBO @JvmOverloads constructor(width: Int, height: Int, clearCol
                }
     }
 
-    override fun getBltMask() = (if (hasAdditionalTextures) GL_DEPTH_BUFFER_BIT else 0) or GL_COLOR_BUFFER_BIT
+    override fun getBltMask() = (if (!hasAdditionalTextures) GL_DEPTH_BUFFER_BIT else 0) or (if (!isMultiSampled) 0 else GL_COLOR_BUFFER_BIT)
 
     override fun cleanUp() {
         if (hasAdditionalTextures)

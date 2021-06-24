@@ -3,6 +3,7 @@
 #else
     layout (location = 0) out vec4 colorBuffer;
     layout (location = 1) out vec4 lightBuffer;
+    layout (location = 2) out vec4 raysBuffer;
 #endif
 
 uniform sampler2D u_TextureUnit;
@@ -81,7 +82,8 @@ void main()
       #ifdef GLES330
         colorBuffer = fcolor;
         lightBuffer = vec4(0.0, 0.0, 0.0, 1.0);
-      #else
+        raysBuffer = vec4(0.0);
+    #else
         gl_FragColor = fcolor;
       #endif
 }
