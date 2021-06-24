@@ -49,7 +49,7 @@ abstract class AbstractEntityCacheManager<T: CachedEntity>
         return entity
     }
 
-    inline operator fun get(key: String) = getItem(key)
+    @Suppress("NOTHING_TO_INLINE") inline operator fun get(key: String) = getItem(key)
 
     private fun addItem(item: T, key: String, isImmortal: Boolean): Item {
         freeNecessarySpace(item)

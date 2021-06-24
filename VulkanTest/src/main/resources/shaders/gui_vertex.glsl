@@ -5,7 +5,7 @@ layout(location = 2) in vec2 a_Texture;
 
 varying vec2 v_Texture;
 
-const vec4 uClipPlane = vec4(0.0, 0.0, -1.0, 100000); //todo: change plane orientation ???
+const vec4 uClipPlane = vec4(1.0, 1.0, 0.0, 100000); //todo: change plane orientation ???
 
 void main()
 {

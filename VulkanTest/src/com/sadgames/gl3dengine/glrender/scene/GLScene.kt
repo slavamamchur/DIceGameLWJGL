@@ -40,6 +40,10 @@ import javax.vecmath.Color4f
 import javax.vecmath.Vector4f
 import kotlin.math.roundToInt
 
+
+const val LIGHT_MAP = 1;
+const val COLOR_BUFFER = 0;
+
 open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
 
     private var savedCamera: GLCamera? = null
@@ -82,8 +86,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     var mDisplayWidth = 0; private set
     var mDisplayHeight = 0; private set
     var isSceneLoaded = false; set(value) { synchronized(lockObject) { field = value } }
-    var mainRenderFBO: AbstractFBO? = null; private set
-    var transiteFBO: AbstractFBO? = null; private set
+    lateinit var mainRenderFBO: AbstractFBO; private set
+    lateinit var transiteFBO: AbstractFBO; private set
     var transiteFBO2: AbstractFBO? = null; private set
     var hBlurFBO: AbstractFBO? = null; private set
     var reflectionMapFBO: AbstractFBO? = null; private set
@@ -484,7 +488,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         glBlendEquation(GL_FUNC_ADD)
 
         /** Render reflection and refraction maps  */
-        if (reflectionMapFBO != null && !settingsManager.isIn_2D_Mode) {
+        if (!settingsManager.isIn_2D_Mode) {
             if (isClippingPlanesSupported) glEnable(EXTClipCullDistance.GL_CLIP_DISTANCE0_EXT)
             camera!!.flipVertical()
             val uniqProg = getCachedShader(GLObjectType.SKY_DOME_OBJECT)
@@ -501,7 +505,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             camera!!.flipVertical()
 
-            /** Render ray map  */
+            /** Render ray map  todo: move to mainFBO*/
             renderItems(refractionMapFBO,
                         getCachedShader(GLObjectType.REFRACTION_MAP_OBJECT)!!,
                         { sceneObject: SceneObjectsTreeItem? -> drawObjectIntoRefractionMap(sceneObject!!) },
@@ -523,13 +527,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         glDisable(GL_MULTISAMPLE)
         glDisable(GL_DEPTH_TEST)
         val steps = ArrayList<PostProcessStep>()
-        mainRenderFBO!!.activeTexture = 1
-        mainRenderFBO!!.resolve2FBO(transiteFBO!!)
-        refractionMapFBO!!.activeTexture = 1
 
         /** for post effects image processing */
         if (!settingsManager.isIn_2D_Mode) {
-            steps.add(PostProcessStep(refractionMapFBO!!.fboTexture!!,
+            steps.add(PostProcessStep(refractionMapFBO!![1]!!,
                              null,
                                       GameConst.GOD_RAYS_POST_EFFECT,
                                       object : HashMap<String, Any>() {
@@ -540,10 +541,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                                       GL20.GL_ONE))
 
             renderPostEffectsBuffer(raysEffectFBO, steps)
-            refractionMapFBO!!.activeTexture = 0
 
+            mainRenderFBO(LIGHT_MAP).resolve2FBO(transiteFBO, GL_COLOR_BUFFER_BIT)
             steps.clear()
-            steps.add(PostProcessStep(transiteFBO!!.fboTexture!!, null,
+            steps.add(PostProcessStep(transiteFBO.fboTexture!!, null,
                        GameConst.BLUR_EFFECT or GameConst.CONTRAST_CHARGE_EFFECT,
                         object : HashMap<String, Any>() {
                             init {
@@ -554,18 +555,15 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             renderPostEffectsBuffer(hBlurFBO, steps)
         }
 
-        mainRenderFBO!!.activeTexture = 0
-        mainRenderFBO!!.resolve2FBO(transiteFBO!!)
+        mainRenderFBO(COLOR_BUFFER) moveto transiteFBO
 
-        val extEffects = !settingsManager.isIn_2D_Mode
         steps.clear()
-
-        if (!extEffects) {
-            steps.add(PostProcessStep(transiteFBO!!.fboTexture!!, null, GameConst.NO_POST_EFFECTS))
+        if (settingsManager.isIn_2D_Mode) {
+            steps.add(PostProcessStep(transiteFBO.fboTexture!!, null, GameConst.NO_POST_EFFECTS))
             renderPostEffectsBuffer(null, steps)
         }
         else {
-            steps.add(PostProcessStep(transiteFBO!!.fboTexture!!, hBlurFBO!!.fboTexture, GameConst.BLOOM_EFFECT))
+            steps.add(PostProcessStep(transiteFBO.fboTexture!!, hBlurFBO!!.fboTexture, GameConst.BLOOM_EFFECT))
             steps.add(PostProcessStep(raysEffectFBO!!.fboTexture!!,null, GameConst.NO_POST_EFFECTS,null,
                                       GL20.GL_ONE))
 

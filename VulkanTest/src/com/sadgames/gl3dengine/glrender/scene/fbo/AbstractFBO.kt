@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL30.*
 import javax.vecmath.Color4f
 
-@Suppress("LeakingThis")
+@Suppress("LeakingThis", "NOTHING_TO_INLINE")
 abstract class AbstractFBO(var width: Int,
                            var height: Int,
                            private val clearColor: Color4f,
@@ -15,11 +15,11 @@ abstract class AbstractFBO(var width: Int,
                            protected val isMultiSampled: Boolean = false) {
 
     private val fboID: Int = glGenFramebuffers()
-    private val colorAttachments: ArrayList<AbstractTexture?> = ArrayList()
 
     protected val colorBuffers: ArrayList<Int> = ArrayList()
 
     var activeTexture = 0
+    val colorAttachments: MutableList<AbstractTexture?> = ArrayList()
     val fboTexture; get() = colorAttachments[activeTexture]
 
     init {
@@ -35,6 +35,14 @@ abstract class AbstractFBO(var width: Int,
         }
 
         unbind()
+    }
+
+    inline operator fun get(index: Int) = colorAttachments[index]
+    inline infix fun moveto(target: AbstractFBO) { this.resolve2FBO(target) }
+
+    operator fun invoke(index: Int): AbstractFBO {
+        activeTexture = index;
+        return this
     }
 
     protected abstract fun attachTexture(num: Int): AbstractTexture?
@@ -59,12 +67,12 @@ abstract class AbstractFBO(var width: Int,
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
     }
 
-    @Suppress("NOTHING_TO_INLINE") inline fun unbind() = glBindFramebuffer(GL_FRAMEBUFFER, 0)
+    inline fun unbind() = glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    @JvmOverloads fun resolve2FBO(fbo: AbstractFBO, buffers: Int = GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT) {
+    @JvmOverloads fun resolve2FBO(fbo: AbstractFBO, buffers: Int = GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT, texture: Int = activeTexture) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo.fboID)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID)
-        glReadBuffer(GL_COLOR_ATTACHMENT0 + activeTexture)
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + texture)
         glBlitFramebuffer(0, 0, width, height,
                           0, 0, fbo.width, fbo.height,
                           buffers,
@@ -72,10 +80,10 @@ abstract class AbstractFBO(var width: Int,
         unbind()
     }
 
-    fun resolve2Screen() {
+    fun resolve2Screen(texture: Int = activeTexture) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
         glBindFramebuffer(GL_READ_FRAMEBUFFER, fboID)
-        glReadBuffer(GL_COLOR_ATTACHMENT0 + activeTexture)
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + texture)
         glDrawBuffer(GL20.GL_BACK)
         glBlitFramebuffer(0, 0, width, height,
                           0, 0, GdxExt.width, GdxExt.height,
