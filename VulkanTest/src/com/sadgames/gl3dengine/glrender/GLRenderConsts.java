@@ -55,7 +55,7 @@ public  class GLRenderConsts {
     }
 
     public enum RenderType {
-        GL4_RENDER,
+        GL41_RENDER,
         VULKAN_RENDER,
         VULKAN_RTX_RENDER,
         METAL_RENDER

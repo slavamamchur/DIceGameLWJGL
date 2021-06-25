@@ -12,8 +12,8 @@ object GLRendererFabric {
     @JvmStatic fun produceRenderByType(type: RenderType, logic: GameLogic) =
         renderers[type]?:
         when (type) {
-            RenderType.GL4_RENDER -> {
-                val scene:GLRendererInterface<SceneObjectsTreeItem> = GLScene(logic)
+            RenderType.GL41_RENDER -> {
+                val scene: GLRendererInterface<SceneObjectsTreeItem> = GLScene(logic)
                 scene.luaEngine = logic.initScriptEngine(scene)
                 renderers[type] = scene
                 renderers[type]

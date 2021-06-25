@@ -14,62 +14,74 @@ import com.sadgames.vulkan.newclass.MouseButtonCallBack
 import com.sadgames.vulkan.newclass.MouseMoveCallBack
 import com.sadgames.vulkan.newclass.MouseScrollCallBack
 import com.sadgames.vulkan.newclass.audio.OpenALLwjglAudio
+import glm_.vec2.Vec2
+import glm_.vec2.Vec2i
+import imgui.ImGui
+import imgui.WindowFlag
+import imgui.classes.Context
+import imgui.impl.gl.ImplGL3
+import imgui.impl.glfw.ImplGlfw
 import org.lwjgl.Version
-import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
-import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWWindowSizeCallback
 import org.lwjgl.opengl.GL
-import org.lwjgl.opengl.GL11.GL_TRUE
-import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.NULL
+import org.lwjgl.system.Platform
+import uno.glfw.GlfwMonitor
+import uno.glfw.GlfwWindow
+import uno.glfw.VSync
+import uno.glfw.glfw
+import uno.glfw.windowHint.Profile.core
 
 object DesktopLauncher {
     private const val TEST_GAME_INSTANCE_ID = "5bb9b8ed674b7d1ff899ca75"
 
-    private var window: Long = NULL;
-    private var renderer: GLRendererInterface<SceneObjectsTreeItem>? = null
+    private var currentTime = System.currentTimeMillis()
+    private lateinit var glfwWindow: GlfwWindow
+    private lateinit var ctx: Context
+    private lateinit var implGlfw: ImplGlfw
+    private lateinit var implGl3: ImplGL3
+    private lateinit var renderer: GLRendererInterface<SceneObjectsTreeItem>
 
     private fun initWindow(isFullScreen: Boolean) {
         glfwDefaultWindowHints()
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
-        //glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_SAMPLES, if (GDXPreferences.graphicsQualityLevel == GraphicsQuality.ULTRA) 8 else 0)
+        glfw.windowHint {
+            visible = false
+            //resizable = true
 
-        val monitor = if (isFullScreen) glfwGetPrimaryMonitor() else NULL
-        window = glfwCreateWindow(1920, 1080, "Dice game!", monitor, NULL) //todo: select resolution from obtained list
-        if (window == NULL)
-            throw RuntimeException("Failed to create the GLFW window")
+            context.version = if (Platform.get() == Platform.MACOSX) "3.2" else "4.1"
+            profile = core
 
-        if (!isFullScreen) {
-            stackPush().use { stack ->
-                val pWidth = stack.mallocInt(1) // int*
-                val pHeight = stack.mallocInt(1) // int*
-
-                glfwGetWindowSize(window, pWidth, pHeight)
-                val vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor())
-
-                // Center the window
-                glfwSetWindowPos(
-                    window,
-                    (vidmode!!.width() - pWidth[0]) / 2,
-                    (vidmode.height() - pHeight[0]) / 2
-                )
-            }
+            samples = if (GDXPreferences.graphicsQualityLevel == GraphicsQuality.ULTRA) 8 else 0
         }
 
-        glfwMakeContextCurrent(window)
-        glfwSwapInterval(0)
-        //todo: glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
-        glfwShowWindow(window)
+        val monitor = GlfwMonitor(if (isFullScreen) glfwGetPrimaryMonitor() else NULL)
+        val currentMode = monitor.videoMode.size
+        glfwWindow = GlfwWindow(currentMode.x, currentMode.y, "Dice game!", monitor)
+
+        if (!isFullScreen)
+            glfwWindow.pos = Vec2i((currentMode.x - glfwWindow.size.x) / 2,
+                                   (currentMode.y - glfwWindow.size.y) / 2)
+
+        glfwWindow.makeContextCurrent()
+        glfw.swapInterval = VSync.OFF
+        //todo: glfwWindow.cursorMode = GlfwWindow.CursorMode.disabled
+        glfwWindow.show()
+    }
+
+    private fun initGUI() {
+        ctx = Context()
+        ImGui.styleColorsDark()
+        //ImGui.styleColorsClassic()
+
+        // Setup Platform/Renderer backend
+        implGlfw = ImplGlfw(glfwWindow, false)
+        implGl3 = ImplGL3()
     }
 
     private fun initCallBacks() {
-        glfwSetKeyCallback(window) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
+        glfwSetKeyCallback(glfwWindow.handle.value) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true)
             /*else if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
@@ -78,33 +90,38 @@ object DesktopLauncher {
             }*/
         }
 
-        glfwSetWindowSizeCallback(window, object : GLFWWindowSizeCallback() {
+        glfwSetWindowSizeCallback(glfwWindow.handle.value, object : GLFWWindowSizeCallback() {
             override fun invoke(window: Long, width: Int, height: Int) {
                 if (GdxExt.width != width || GdxExt.height != height)
-                    renderer!!.onSurfaceChanged(width, height)
+                    renderer.onSurfaceChanged(width, height)
             }
         })
 
-        val gestureListener = MyGestureListener(renderer!!)
-        glfwSetScrollCallback(window, MouseScrollCallBack(gestureListener))
-        glfwSetCursorPosCallback(window, MouseMoveCallBack(gestureListener))
-        glfwSetMouseButtonCallback(window, MouseButtonCallBack(gestureListener))
+        val gestureListener = MyGestureListener(renderer)
+        glfwSetScrollCallback(glfwWindow.handle.value, MouseScrollCallBack(gestureListener))
+        glfwSetCursorPosCallback(glfwWindow.handle.value, MouseMoveCallBack(gestureListener))
+        glfwSetMouseButtonCallback(glfwWindow.handle.value, MouseButtonCallBack(gestureListener))
     }
 
-    private fun init() {
+    private fun initGame() {
         System.out.println("Hello LWJGL " + Version.getVersion().toString() + "!")
-        GLFWErrorCallback.createPrint(System.err).set()
+        //GLFWErrorCallback.createPrint(System.err).set()
 
-        check(glfwInit()) { "Unable to initialize GLFW" }
+        //check(glfwInit()) { "Unable to initialize GLFW" }
+
+        glfw {
+            errorCallback = { error, description -> println("Glfw Error $error: $description") }
+            init()
+        }
 
         initWindow(true)
 
         GL.createCapabilities()
 
-        renderer = /*NGL4xRenderer()*/
-        produceRenderByType(RenderType.GL4_RENDER,
-            GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper)
-        )
+        initGUI()
+
+        renderer = produceRenderByType(RenderType.GL41_RENDER, GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper))!!
+
         initCallBacks()
 
         GdxExt.audio = OpenALLwjglAudio()
@@ -112,36 +129,65 @@ object DesktopLauncher {
         glfwPollEvents()
     }
 
-    private fun renderLoop() {
-        var currentTime = System.currentTimeMillis()
-        while (!glfwWindowShouldClose(window)) {
-            renderer!!.onDrawFrame()
+    private fun renderLoop(stack: MemoryStack) {
+        //currentTime = System.currentTimeMillis()
+        //while (!glfwWindowShouldClose(window)) {
+        implGlfw.newFrame()
 
-            glfwSwapBuffers(window)
-            glfwPollEvents()
+        ImGui.run {
+            newFrame()
 
-            val newTime = System.currentTimeMillis()
-            renderer!!.frameTime = newTime - currentTime
-            currentTime = newTime
+            run {
+                begin("Debug info", booleanArrayOf(true), WindowFlag.NoMove or WindowFlag.NoResize)
+
+                //todo: move out from loop to renderer ???
+                val res = GlfwMonitor(glfwGetPrimaryMonitor()).videoMode.size
+                setWindowPos(Vec2(res.x - windowSize.x, 0f))
+                setWindowFontScale(2f)
+
+                text("Platform: %s",Platform.get().getName())
+                text("Renderer: %s", "OpenGL 4.1")
+                text("Resolution: %dx%d", res.x, res.y)
+                text("Frame time: %.3f ms (%.1f FPS)", 1_000f / io.framerate, io.framerate)
+                //text("Frame time average: %.3f ms/frame (%.1f FPS)", 1f * renderer.frameTime, 1000f / renderer.frameTime)
+
+                end()
+            }
         }
+        ImGui.render()
+
+        renderer.onDrawFrame()
+
+        implGl3.renderDrawData(ImGui.drawData!!)
+
+            //glfwSwapBuffers(window)
+            //glfwPollEvents()
+            val newTime = System.currentTimeMillis()
+            renderer.frameTime = newTime - currentTime
+            currentTime = newTime
+        //}
     }
 
-    fun runGame() {
-        init()
+    private fun runGame() {
+        implGl3.newFrame()
 
-        renderer!!.onSurfaceCreated()
-        renderLoop()
-        renderer!!.onDispose()
+        renderer.onSurfaceCreated()
 
-        glfwFreeCallbacks(window)
-        glfwDestroyWindow(window)
-        glfwTerminate()
-        glfwSetErrorCallback(null)!!.free()
+        //renderLoop()
+        currentTime = System.currentTimeMillis()
+        glfwWindow.loop(::renderLoop)
+
+        renderer.onDispose()
+
+        implGl3.shutdown()
+        implGlfw.shutdown()
+        ctx.destroy()
+
+        glfwWindow.destroy()
+        glfw.terminate()
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        runGame()
-    }
+    init { initGame() }
 
+    @JvmStatic fun main(args: Array<String>) { runGame() }
 }
