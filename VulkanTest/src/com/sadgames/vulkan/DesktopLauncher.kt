@@ -143,9 +143,10 @@ object DesktopLauncher {
                 //todo: move out from loop to renderer ???
                 val res = GlfwMonitor(glfwGetPrimaryMonitor()).videoMode.size
                 setWindowPos(Vec2(res.x - windowSize.x, 0f))
-                setWindowFontScale(2f)
+                setWindowFontScale(1.5f)
 
                 text("Platform: %s",Platform.get().getName())
+                text("Runtime env: %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"))
                 text("Renderer: %s", "OpenGL 4.1")
                 text("Resolution: %dx%d", res.x, res.y)
                 text("Frame time: %.3f ms (%.1f FPS)", 1_000f / io.framerate, io.framerate)
