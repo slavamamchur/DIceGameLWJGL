@@ -30,7 +30,7 @@ allprojects {
 
     ext {
         appName = "sad-games-engine-test"
-        kotlin_version = '1.5.10'
+        kotlin_version = '1.5.20'
         lwjglVersion = "3.3.0-SNAPSHOT"
         jomlVersion = "1.10.1"
         steamworks4jVersion = "1.8.0"
