@@ -19,7 +19,6 @@ import com.sadgames.gl3dengine.glrender.scene.lights.GLLightSource;
 import com.sadgames.gl3dengine.glrender.scene.objects.AbstractGL3DObject;
 import com.sadgames.gl3dengine.glrender.scene.objects.AbstractSkyObject;
 import com.sadgames.gl3dengine.glrender.scene.objects.Blender3DObject;
-import com.sadgames.gl3dengine.glrender.scene.objects.GUI2DImageObject;
 import com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject;
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem;
 import com.sadgames.gl3dengine.glrender.scene.objects.SkyDomeObject;
@@ -71,6 +70,7 @@ import javax.vecmath.Vector4f;
 
 import glm_.vec2.Vec2;
 import glm_.vec2.Vec2i;
+import glm_.vec4.Vec4;
 import imgui.Cond;
 import imgui.ImGui;
 import imgui.StyleVar;
@@ -84,7 +84,6 @@ import uno.glfw.GlfwWindow;
 
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.GameState;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.MAP_BACKGROUND_TEXTURE_NAME;
-import static com.sadgames.gl3dengine.gamelogic.client.GameConst.MINI_MAP_OBJECT;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.ON_BEFORE_DRAW_FRAME_EVENT_HANDLER;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.ON_CREATE_DYNAMIC_ITEMS_HANDLER;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.ON_CREATE_REFLECTION_MAP_EVENT_HANDLER;
@@ -106,7 +105,6 @@ import static com.sadgames.gl3dengine.gamelogic.client.GameConst.TERRAIN_ATLAS_T
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.TERRAIN_MESH_OBJECT;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.WATER_MESH_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.FOREST_OBJECT;
-import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.GUI_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.TERRAIN_OBJECT_32;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.GLObjectType.WATER_OBJECT;
 import static com.sadgames.gl3dengine.glrender.GLRenderConsts.TEXTURE_RESOLUTION_SCALE;
@@ -401,14 +399,14 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         glScene.getScene().putChild(sun, SUN_OBJECT);
 
         /** mini-map gui-box */
-        if (!getSettingsManager().isIn_2D_Mode()) {
+        /*if (!getSettingsManager().isIn_2D_Mode()) {
             GUI2DImageObject miniMapView = new GUI2DImageObject(glScene.getCachedShader(GUI_OBJECT),
                                                                 new Vector4f(-1, 1, -0.71f, 0.5f),
                                                                 true);
             miniMapView.loadObject();
             miniMapView.setGlTexture(terrain.getGlTexture());
             glScene.getScene().putChild(miniMapView, MINI_MAP_OBJECT);
-        }
+        }*/
 
         wind.startAnimation(forest, null);
 
@@ -416,28 +414,37 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         GdxExt.restAPI.removeLoadingSplash();
     }
 
-     @Override public void onUpdateUI(@NotNull GlfwWindow glfwWindow) {
-        ImGui.INSTANCE.newFrame();
+     @Override public void onUpdateUI(@NotNull GlfwWindow glfwWindow, @NotNull GLRendererInterface<SceneObjectsTreeItem> glScene) {
+         ImGui imGui = ImGui.INSTANCE;
+         imGui.newFrame();
 
-        ImGui.INSTANCE.pushStyleVar(StyleVar.Alpha, 0.5f);
-        ImGui.INSTANCE.begin("Debug info", new boolean[]{false}, WindowFlag.NoMove.i | WindowFlag.NoResize.i);
-        ImGui.INSTANCE.popStyleVar(1);
+         imGui.pushStyleVar(StyleVar.Alpha, 0.5f);
+         imGui.begin("Debug info", new boolean[]{false}, WindowFlag.NoMove.i | WindowFlag.NoResize.i);
+         imGui.popStyleVar(1);
 
-        Vec2i res = new GlfwMonitor(glfwGetPrimaryMonitor()).getVideoMode().getSize();
-        ImGui.INSTANCE.setWindowPos(new Vec2(res.getX() - ImGui.INSTANCE.getWindowSize().getX(), 0f), Cond.None);
-        ImGui.INSTANCE.setWindowFontScale(1.5f);
+         Vec2i res = new GlfwMonitor(glfwGetPrimaryMonitor()).getVideoMode().getSize();
+         imGui.setWindowPos(new Vec2(res.getX() - imGui.getWindowSize().getX(), 0f), Cond.None);
+         imGui.setWindowFontScale(1.5f);
 
-        ImGui.INSTANCE.text("Platform:   %s", Platform.get().getName());
-        ImGui.INSTANCE.text("Runtime:    %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"));
-        ImGui.INSTANCE.text("Renderer:   %s", "OpenGL 4.1");
+         imGui.text("Platform:   %s", Platform.get().getName());
+         imGui.text("Runtime:    %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"));
+         imGui.text("Renderer:   %s", "OpenGL 4.1");
             //sameLine()
-        ImGui.INSTANCE.text("Resolution: %dx%d", res.getX(), res.getY());
-        float framerate = ImGui.INSTANCE.getIo().getFramerate();
-        ImGui.INSTANCE.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);
+         imGui.text("Resolution: %dx%d", res.getX(), res.getY());
+         float framerate = imGui.getIo().getFramerate();
+         imGui.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);
 
-        if (ImGui.INSTANCE.button("Exit", new Vec2())) glfwWindow.setShouldClose(true);
+         if (imGui.button("Exit", new Vec2())) glfwWindow.setShouldClose(true);
 
-        ImGui.INSTANCE.end();
+         AbstractTexture texture = ((AbstractGL3DObject) Objects.requireNonNull(glScene.getScene().getChild(TERRAIN_MESH_OBJECT))).getGlTexture();
+         float tex_w = texture.getWidth();
+         float tex_h = texture.getHeight();
+         int tex_id = texture.getTextureId();
+         imGui.image(tex_id, new Vec2(tex_w, tex_h), new Vec2(0,0), new Vec2(1,1), new Vec4(255,255,255,255), new Vec4(255,255,255,128));
+
+         imGui.end();
+
+        //todo: Game menu
 
         /*btn.addListener( new ClickListener() {
             @Override

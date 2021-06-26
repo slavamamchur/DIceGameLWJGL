@@ -28,5 +28,5 @@ interface GameEventsCallbackInterface {
     fun onPlayerMakeTurn(delegate: GLAnimation.AnimationCallBack?)
     fun onPlayerContinueTurn()
     fun onPerformUserAction(action: String?, params: Array<LuaValue?>?)
-    fun onUpdateUI(glfwWindow: GlfwWindow)
+    fun onUpdateUI(glfwWindow: GlfwWindow, glScene: GLRendererInterface<SceneObjectsTreeItem>)
 }

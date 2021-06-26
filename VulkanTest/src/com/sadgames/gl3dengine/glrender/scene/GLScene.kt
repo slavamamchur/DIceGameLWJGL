@@ -522,7 +522,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
 
-        //getObject(GameConst.MINI_MAP_OBJECT)?.glTexture = (refractionMapFBO!! as ColorBufferFBO).depthTexture
         /** render colorBuffer  */
         glEnable(GL_MULTISAMPLE)
         renderItems(mainRenderFBO, null,
@@ -644,7 +643,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         implGlfw.newFrame()
 
-        gameEventsCallBackListener?.onUpdateUI(glfwWindow);
+        gameEventsCallBackListener?.onUpdateUI(glfwWindow, this)
 
         drawScene()
 
