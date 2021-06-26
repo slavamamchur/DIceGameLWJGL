@@ -28,6 +28,10 @@ import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
 import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.vulkan.newclass.GLVersion
 import com.sadgames.vulkan.newclass.GLVersion.ApplicationType
+import imgui.ImGui
+import imgui.classes.Context
+import imgui.impl.gl.ImplGL3
+import imgui.impl.glfw.ImplGlfw
 import org.luaj.vm2.Globals
 import org.lwjgl.opengl.GL13.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL20
@@ -35,6 +39,7 @@ import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL30
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengles.EXTClipCullDistance
+import uno.glfw.GlfwWindow
 import java.util.*
 import javax.vecmath.Color4f
 import javax.vecmath.Vector4f
@@ -52,13 +57,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     private val shaders: MutableMap<GLObjectType, VBOShaderProgram> = EnumMap(GLObjectType::class.java)
     private var postEffects2DScreen: GUI2DImageObject? = null
     private var isSimulating = false
-    //todo: private var fpsCounter: Label? = null
-    //todo: private lateinit var table: Table
     private var spentTime: Long = 0
     private var isRenderStopped = false
     private var prevObject: AbstractGL3DObject? = null
     private var old2dModeValue = false
-    //todo: private lateinit var stage: Stage
     private val isClippingPlanesSupported by lazy{glExtensions.contains("_cull_distance")}
 
     override var moveFactor = 0f
@@ -82,6 +84,11 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             lightSource?.mCamera = field!!
         }
+
+    override lateinit var ctx: Context
+    override lateinit var implGlfw: ImplGlfw
+    override lateinit var implGl3: ImplGL3
+    override lateinit var glfwWindow: GlfwWindow
 
     var mDisplayWidth = 0; private set
     var mDisplayHeight = 0; private set
@@ -634,23 +641,15 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     fun render() {
         spentTime += frameTime
+
+        implGlfw.newFrame()
+
+        gameEventsCallBackListener?.onUpdateUI(glfwWindow);
+
         drawScene()
 
-        //todo: implement GUI
-        /*glDisable(GL20.GL_CULL_FACE)
-        glDisable(GL20.GL_DEPTH_TEST)
-
-        stage.act(Gdx.graphics.deltaTime)
-
-        if (fpsCounter != null && spentTime >= 250) {
-            spentTime = 0
-            fpsCounter!!.setText(String.format(" fps: %d", if (frameTime == 0L) 0 else 1000 / frameTime))
-        }
-
-        stage.draw()
-
-        glEnable(GL20.GL_CULL_FACE)
-        glEnable(GL20.GL_DEPTH_TEST)*/
+        ImGui.render()
+        implGl3.renderDrawData(ImGui.drawData!!)
     }
 
     /*fun createCamIsometric(xPos: Float, yPos: Float, zPos: Float, pitch: Float, yaw: Float, roll: Float): GLCamera? {
@@ -668,23 +667,17 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     }
 
     fun create() {
+        implGl3.newFrame()
+
         scenePrepare()
-
-        //todo: gui
-        /*stage = Stage()
-        (Gdx.input.inputProcessor as MyGestureDetector)._2dUiProcessor = stage
-
-        table = Table()
-        table.setFillParent(true)
-        table.width = 30f
-        table.top()
-
-        stage.addActor(table)*/
     }
 
     fun dispose() {
         cleanUp()
-        //todo: stage.dispose()
+
+        implGl3.shutdown()
+        implGlfw.shutdown()
+        ctx.destroy()
     }
 
 }

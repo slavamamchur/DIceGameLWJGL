@@ -1,13 +1,5 @@
 package com.sadgames.gl3dengine.gamelogic.client;
 
-//import com.badlogic.gdx.graphics.g2d.BitmapFont;
-//import com.badlogic.gdx.scenes.scene2d.Actor;
-//import com.badlogic.gdx.scenes.scene2d.InputEvent;
-//import com.badlogic.gdx.scenes.scene2d.ui.Label;
-//import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-//import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-//import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.cubegames.engine.domain.entities.players.InstancePlayer;
 import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream;
@@ -56,6 +48,7 @@ import org.luaj.vm2.lib.ResourceFinder;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.JsePlatform;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.Platform;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -76,10 +69,18 @@ import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector4f;
 
+import glm_.vec2.Vec2;
+import glm_.vec2.Vec2i;
+import imgui.Cond;
+import imgui.ImGui;
+import imgui.StyleVar;
+import imgui.WindowFlag;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.EmptyCoroutineContext;
+import uno.glfw.GlfwMonitor;
+import uno.glfw.GlfwWindow;
 
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.GameState;
 import static com.sadgames.gl3dengine.gamelogic.client.GameConst.MAP_BACKGROUND_TEXTURE_NAME;
@@ -116,6 +117,7 @@ import static com.sadgames.sysutils.common.CommonUtils.getSettingsManager;
 import static com.sadgames.sysutils.common.CommonUtils.waitForGC;
 import static com.sadgames.sysutils.common.LuaUtils.javaList2LuaTable;
 import static com.sadgames.sysutils.common.MathUtils.mulMatOnVec;
+import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
 
 public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
@@ -128,7 +130,6 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
     private Map<String, OpenALSound> soundCache = new HashMap<>();
     private Globals luaEngine;
     private int prev_player_index;
-    ///todo: private List<Actor> gameControls = new ArrayList<Actor>(){};
 
     public GameLogic(String instanceId, RestApiInterface restAPI) {
         GdxExt.gameLogic = this;
@@ -247,8 +248,6 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
     public void setPrev_player_index(int prev_player_index) {
         this.prev_player_index = prev_player_index;
     }
-
-    ///todo: public List<Actor> getGameControls() {return gameControls;}
 
     @SuppressWarnings("unused") public Vector3f mulMV(Matrix4f matrix, LuaTable vector) {
         return mulMatOnVec(matrix, new Vector4f(LuaUtils.luaTable2FloatArray(vector)));
@@ -411,26 +410,36 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
             glScene.getScene().putChild(miniMapView, MINI_MAP_OBJECT);
         }
 
-        ///todo: createUI(); or import 2d UI lib from gdx???
-
         wind.startAnimation(forest, null);
 
         waitForGC();
         GdxExt.restAPI.removeLoadingSplash();
     }
 
-    //todo: ...
-    /*private void createUI() {
-        BitmapFont buttonFont = new BitmapFont();
-        buttonFont.getData().setScale(2.0f);
+     @Override public void onUpdateUI(@NotNull GlfwWindow glfwWindow) {
+        ImGui.INSTANCE.newFrame();
 
-        Skin skin = new Skin(Gdx.files.internal("data/uiskin.json"));
+        ImGui.INSTANCE.pushStyleVar(StyleVar.Alpha, 0.5f);
+        ImGui.INSTANCE.begin("Debug info", new boolean[]{false}, WindowFlag.NoMove.i | WindowFlag.NoResize.i);
+        ImGui.INSTANCE.popStyleVar(1);
 
-        TextButton.TextButtonStyle style = skin.get(TextButton.TextButtonStyle.class);
-        style.font = buttonFont;
+        Vec2i res = new GlfwMonitor(glfwGetPrimaryMonitor()).getVideoMode().getSize();
+        ImGui.INSTANCE.setWindowPos(new Vec2(res.getX() - ImGui.INSTANCE.getWindowSize().getX(), 0f), Cond.None);
+        ImGui.INSTANCE.setWindowFontScale(1.5f);
 
-        TextButton btn = new TextButton("Play", style);
-        btn.addListener( new ClickListener() {
+        ImGui.INSTANCE.text("Platform:   %s", Platform.get().getName());
+        ImGui.INSTANCE.text("Runtime:    %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"));
+        ImGui.INSTANCE.text("Renderer:   %s", "OpenGL 4.1");
+            //sameLine()
+        ImGui.INSTANCE.text("Resolution: %dx%d", res.getX(), res.getY());
+        float framerate = ImGui.INSTANCE.getIo().getFramerate();
+        ImGui.INSTANCE.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);
+
+        if (ImGui.INSTANCE.button("Exit", new Vec2())) glfwWindow.setShouldClose(true);
+
+        ImGui.INSTANCE.end();
+
+        /*btn.addListener( new ClickListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 playTurn();
@@ -438,11 +447,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
                 return true;
             }
         } );
-        btn.pad(5.0f);
-        btn.setRound(true);
-        gameControls.add(btn);
 
-        btn = new TextButton("Restart", style);
         btn.addListener( new ClickListener() {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -450,14 +455,8 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
                 return true;
             }
-        } );
-        btn.pad(5.0f);
-        btn.setRound(true);
-        gameControls.add(btn);
-
-        Label lbl = new Label("", skin);
-        gameControls.add(lbl);
-    }*/
+        } );*/
+    }
 
     private AbstractTexture createBlendingMap() { //todo: increase resolution
         Pixmap blendMap;

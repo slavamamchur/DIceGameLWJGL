@@ -14,10 +14,8 @@ import com.sadgames.vulkan.newclass.MouseButtonCallBack
 import com.sadgames.vulkan.newclass.MouseMoveCallBack
 import com.sadgames.vulkan.newclass.MouseScrollCallBack
 import com.sadgames.vulkan.newclass.audio.OpenALLwjglAudio
-import glm_.vec2.Vec2
 import glm_.vec2.Vec2i
 import imgui.ImGui
-import imgui.WindowFlag
 import imgui.classes.Context
 import imgui.impl.gl.ImplGL3
 import imgui.impl.glfw.ImplGlfw
@@ -39,9 +37,6 @@ object DesktopLauncher {
 
     private var currentTime = System.currentTimeMillis()
     private lateinit var glfwWindow: GlfwWindow
-    private lateinit var ctx: Context
-    private lateinit var implGlfw: ImplGlfw
-    private lateinit var implGl3: ImplGL3
     private lateinit var renderer: GLRendererInterface<SceneObjectsTreeItem>
 
     private fun initWindow(isFullScreen: Boolean) {
@@ -71,23 +66,17 @@ object DesktopLauncher {
     }
 
     private fun initGUI() {
-        ctx = Context()
+        renderer.ctx = Context()
         ImGui.styleColorsDark()
-        //ImGui.styleColorsClassic()
-
-        // Setup Platform/Renderer backend
-        implGlfw = ImplGlfw(glfwWindow, false)
-        implGl3 = ImplGL3()
+        renderer.implGlfw = ImplGlfw(glfwWindow, false)
+        renderer.implGl3 = ImplGL3()
+        renderer.glfwWindow = glfwWindow
     }
 
     private fun initCallBacks() {
         glfwSetKeyCallback(glfwWindow.handle.value) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true)
-            /*else if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
-                val testSound1 = GdxExt.audio.newSound(CommonUtils.getResourceStream("/sounds/rolling_dice.mp3"))
-                testSound1.play()
-            }*/
         }
 
         glfwSetWindowSizeCallback(glfwWindow.handle.value, object : GLFWWindowSizeCallback() {
@@ -105,9 +94,6 @@ object DesktopLauncher {
 
     private fun initGame() {
         System.out.println("Hello LWJGL " + Version.getVersion().toString() + "!")
-        //GLFWErrorCallback.createPrint(System.err).set()
-
-        //check(glfwInit()) { "Unable to initialize GLFW" }
 
         glfw {
             errorCallback = { error, description -> println("Glfw Error $error: $description") }
@@ -118,9 +104,9 @@ object DesktopLauncher {
 
         GL.createCapabilities()
 
-        initGUI()
-
         renderer = produceRenderByType(RenderType.GL41_RENDER, GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper))!!
+
+        initGUI()
 
         initCallBacks()
 
@@ -132,34 +118,8 @@ object DesktopLauncher {
     private fun renderLoop(stack: MemoryStack) {
         //currentTime = System.currentTimeMillis()
         //while (!glfwWindowShouldClose(window)) {
-        implGlfw.newFrame()
 
-        ImGui.run {
-            newFrame()
-
-            run {
-                begin("Debug info", booleanArrayOf(true), WindowFlag.NoMove or WindowFlag.NoResize)
-
-                //todo: move out from loop to renderer ???
-                val res = GlfwMonitor(glfwGetPrimaryMonitor()).videoMode.size
-                setWindowPos(Vec2(res.x - windowSize.x, 0f))
-                setWindowFontScale(1.5f)
-
-                text("Platform: %s",Platform.get().getName())
-                text("Runtime env: %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"))
-                text("Renderer: %s", "OpenGL 4.1")
-                text("Resolution: %dx%d", res.x, res.y)
-                text("Frame time: %.3f ms (%.1f FPS)", 1_000f / io.framerate, io.framerate)
-                //text("Frame time average: %.3f ms/frame (%.1f FPS)", 1f * renderer.frameTime, 1000f / renderer.frameTime)
-
-                end()
-            }
-        }
-        ImGui.render()
-
-        renderer.onDrawFrame()
-
-        implGl3.renderDrawData(ImGui.drawData!!)
+            renderer.onDrawFrame()
 
             //glfwSwapBuffers(window)
             //glfwPollEvents()
@@ -170,8 +130,6 @@ object DesktopLauncher {
     }
 
     private fun runGame() {
-        implGl3.newFrame()
-
         renderer.onSurfaceCreated()
 
         //renderLoop()
@@ -179,10 +137,6 @@ object DesktopLauncher {
         glfwWindow.loop(::renderLoop)
 
         renderer.onDispose()
-
-        implGl3.shutdown()
-        implGlfw.shutdown()
-        ctx.destroy()
 
         glfwWindow.destroy()
         glfw.terminate()

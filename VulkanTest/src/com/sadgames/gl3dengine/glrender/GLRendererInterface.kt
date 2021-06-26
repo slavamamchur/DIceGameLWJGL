@@ -12,7 +12,11 @@ import com.sadgames.gl3dengine.glrender.scene.objects.AbstractGL3DObject
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 import com.sadgames.gl3dengine.glrender.scene.shaders.VBOShaderProgram
 import com.sadgames.gl3dengine.physics.PhysicalWorld
+import imgui.classes.Context
+import imgui.impl.gl.ImplGL3
+import imgui.impl.glfw.ImplGlfw
 import org.luaj.vm2.Globals
+import uno.glfw.GlfwWindow
 import java.awt.Color
 import javax.vecmath.Matrix4f
 import javax.vecmath.Vector3f
@@ -34,6 +38,10 @@ interface GLRendererInterface<T: SceneObjectsTreeItem> {
     val lockObject; get() = lock
     var glExtensions: String
     var zoomCameraAnimation: GLAnimation?
+    var ctx: Context
+    var implGlfw: ImplGlfw
+    var implGl3: ImplGL3
+    var glfwWindow: GlfwWindow
 
     companion object {val lock = Any()}
 

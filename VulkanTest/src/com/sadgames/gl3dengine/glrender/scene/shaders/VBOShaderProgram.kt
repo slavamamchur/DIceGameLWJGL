@@ -1,6 +1,5 @@
 package com.sadgames.gl3dengine.glrender.scene.shaders
 
-import org.lwjgl.opengl.GL20
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.*
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.GLParamType.FLOAT_ATTRIB_ARRAY_PARAM
 import com.sadgames.gl3dengine.glrender.GLRendererInterface
@@ -11,7 +10,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 import com.sadgames.gl3dengine.glrender.scene.shaders.params.GLInstancedShaderParam
 import com.sadgames.gl3dengine.glrender.scene.shaders.params.GLShaderParam
 import com.sadgames.sysutils.common.Mat4x4
-import com.sadgames.vulkan.NGL4xRenderer
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER
 import java.util.*
 
