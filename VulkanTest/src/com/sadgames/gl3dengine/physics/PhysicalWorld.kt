@@ -39,10 +39,10 @@ object PhysicalWorld {
 
     fun simulateStep(time: Long, frameTime: Float) {
         val realInterval = frameTime //if (old_frame_time == 0L) 0f else (time - old_frame_time) / 1000f
-        old_frame_time = time
-        System.out.println("frameTime:$realInterval")
+        //old_frame_time = time
+        //System.out.println("frameTime:$realInterval")
 
-        physicalWorld.stepSimulation(1f, 1, realInterval)
+        physicalWorld.stepSimulation(realInterval, 0, realInterval)
 
         for (i in 0 until physicalWorld.dispatcher.numManifolds)
             if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts > 0
