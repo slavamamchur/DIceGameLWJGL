@@ -1,9 +1,5 @@
 package com.sadgames.gl3dengine.glrender.scene
 
-/*import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Table*/
-
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
 import com.sadgames.gl3dengine.gamelogic.client.GameConst
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.*
@@ -123,12 +119,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         loadScene()
 
         gameEventsCallBackListener?.onCreateReflectionMap(reflectionMapFBO, refractionMapFBO)
-
-        //todo: GUI
-        /*for (control in (gameEventsCallBackListener as GameLogic).gameControls) {
-            table.add(control)
-            if (control is Label) fpsCounter = control
-        }*/
 
         startSimulation()
     }

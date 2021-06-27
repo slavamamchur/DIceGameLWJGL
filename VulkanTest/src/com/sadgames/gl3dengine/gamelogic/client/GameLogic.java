@@ -429,12 +429,9 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
          imGui.text("Platform:   %s", Platform.get().getName());
          imGui.text("Runtime:    %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"));
          imGui.text("Renderer:   %s", "OpenGL 4.1");
-            //sameLine()
          imGui.text("Resolution: %dx%d", res.getX(), res.getY());
          float framerate = imGui.getIo().getFramerate();
          imGui.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);
-
-         if (imGui.button("Exit", new Vec2())) glfwWindow.setShouldClose(true);
 
          AbstractTexture texture = ((AbstractGL3DObject) Objects.requireNonNull(glScene.getScene().getChild(TERRAIN_MESH_OBJECT))).getGlTexture();
          float tex_w = texture.getWidth();
@@ -444,25 +441,19 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
          imGui.end();
 
-        //todo: Game menu
+         imGui.pushStyleVar(StyleVar.Alpha, 0.5f);
+         imGui.begin("Panel", new boolean[]{false}, WindowFlag.NoMove.i | WindowFlag.NoResize.i | WindowFlag.NoTitleBar.i);
+         imGui.popStyleVar(1);
+         imGui.setWindowPos(new Vec2((res.getX() - imGui.getWindowSize().getX()) / 2, 0f), Cond.None);
+         imGui.setWindowFontScale(2f);
 
-        /*btn.addListener( new ClickListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                playTurn();
+         //todo: ImageButton(tex_id, ImVec2(32,32), ImVec2(0,0), ImVec2(32.0f/tex_w,32/tex_h), frame_padding, ImColor(0,0,0,255))
+         Vec2 defaultParam = new Vec2();
+         if (imGui.button("Play", defaultParam)) playTurn(); imGui.sameLine(0f, -1f);
+         if (imGui.button("Restart", defaultParam)) requestRestartGame(); ; imGui.sameLine(0f, -1f);
+         if (imGui.button("Exit", defaultParam)) glfwWindow.setShouldClose(true);
 
-                return true;
-            }
-        } );
-
-        btn.addListener( new ClickListener() {
-            @Override
-            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-                requestRestartGame();
-
-                return true;
-            }
-        } );*/
+         imGui.end();
     }
 
     private AbstractTexture createBlendingMap() { //todo: increase resolution
