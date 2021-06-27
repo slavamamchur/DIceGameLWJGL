@@ -254,7 +254,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     private fun simulatePhysics(currentTime: Long) {
         if (isSimulating)
-            simulateStep(currentTime)
+            simulateStep(currentTime, frameTime / 1000f)
     }
 
     private fun calculateCameraPosition() {

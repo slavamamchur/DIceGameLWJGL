@@ -331,6 +331,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
     public void onLoadSceneObjects(GLRendererInterface<SceneObjectsTreeItem> glScene) {
         TextureCache textureCache = TextureCache.INSTANCE;
         textureCache.clearCache();
+        textureCache.getItem("dice_ico.png");
         textureCache.getItem(ROAD_TEXTURE_NAME);
         textureCache.getItem(SAND_TEXTURE_NAME);
         textureCache.getItem(TERRAIN_ATLAS_TEXTURE_NAME);
@@ -447,9 +448,9 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
          imGui.setWindowPos(new Vec2((res.getX() - imGui.getWindowSize().getX()) / 2, 0f), Cond.None);
          imGui.setWindowFontScale(2f);
 
-         //todo: ImageButton(tex_id, ImVec2(32,32), ImVec2(0,0), ImVec2(32.0f/tex_w,32/tex_h), frame_padding, ImColor(0,0,0,255))
          Vec2 defaultParam = new Vec2();
-         if (imGui.button("Play", defaultParam)) playTurn(); imGui.sameLine(0f, -1f);
+         tex_id = TextureCache.INSTANCE.getItem("dice_ico.png").getTextureId();
+         if (imGui.imageButton(tex_id, new Vec2(32, 32), new Vec2(0,0), new Vec2(1,1), 1, new Vec4(0,0,0,255), new Vec4(255,255,255,255))) playTurn(); imGui.sameLine(0f, -1f);
          if (imGui.button("Restart", defaultParam)) requestRestartGame(); ; imGui.sameLine(0f, -1f);
          if (imGui.button("Exit", defaultParam)) glfwWindow.setShouldClose(true);
 

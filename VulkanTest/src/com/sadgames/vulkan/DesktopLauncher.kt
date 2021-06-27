@@ -74,11 +74,12 @@ object DesktopLauncher {
     }
 
     private fun initCallBacks() {
-        glfwSetKeyCallback(glfwWindow.handle.value) { window: Long, key: Int, scancode: Int, action: Int, mods: Int ->
+        glfwWindow.keyCB  = { key: Int, scancode: Int, action: Int, mods: Int ->
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true)
+                glfwWindow.shouldClose = true
         }
 
+        //todo: change others
         glfwSetWindowSizeCallback(glfwWindow.handle.value, object : GLFWWindowSizeCallback() {
             override fun invoke(window: Long, width: Int, height: Int) {
                 if (GdxExt.width != width || GdxExt.height != height)

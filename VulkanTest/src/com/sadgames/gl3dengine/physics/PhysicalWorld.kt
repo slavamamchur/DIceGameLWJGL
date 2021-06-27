@@ -37,9 +37,10 @@ object PhysicalWorld {
         gameEventsCallBackListener?.onInitPhysics(physicalWorld)
     }
 
-    fun simulateStep(time: Long) {
-        val realInterval = if (old_frame_time == 0L) 0f else (time - old_frame_time) / 1000f
+    fun simulateStep(time: Long, frameTime: Float) {
+        val realInterval = frameTime //if (old_frame_time == 0L) 0f else (time - old_frame_time) / 1000f
         old_frame_time = time
+        System.out.println("frameTime:$realInterval")
 
         physicalWorld.stepSimulation(1f, 1, realInterval)
 
