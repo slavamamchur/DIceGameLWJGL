@@ -18,6 +18,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject
 import java.util.*
 import javax.vecmath.Matrix4f
 import javax.vecmath.Vector3f
+import kotlin.math.roundToLong
 
 object PhysicalWorld {
 
@@ -42,22 +43,26 @@ object PhysicalWorld {
 
             physicalWorld.stepSimulation(frameTime, 0, frameTime)
 
-            for (i in 0 until physicalWorld.dispatcher.numManifolds)
-                if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts > 0
-                    && physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts != oldNumContacts
-                ) {
-                    gameEventsCallBackListener?.onRollingObjectStart(
-                        (physicalWorld.dispatcher.getManifoldByIndexInternal(
-                            i
-                        ).body1 as CollisionObject).userPointer as GameItemObject
-                    )
+            for (i in 0 until physicalWorld.dispatcher.numManifolds) {
+                val numContacts = physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts
+                if (numContacts > 0 && numContacts != oldNumContacts) {
+                    oldNumContacts = numContacts
+                    old_time = 0L
 
-                    oldNumContacts =
-                        physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts
-                    old_time = time //=0
-                } else //todo: error - too small interval to detect movement and unexpected stop !!! //old_time += frameTime
-                    if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts == 0 || (time - old_time > 150))
-                        gameEventsCallBackListener?.onRollingObjectStop(null)
+                    gameEventsCallBackListener?.onRollingObjectStart(
+                        (physicalWorld.dispatcher.getManifoldByIndexInternal(i).body1 as CollisionObject).userPointer as GameItemObject)
+                } else {
+                    if (numContacts == 0 && numContacts != oldNumContacts) {
+                        old_time += (frameTime * 1000).roundToLong()
+                        if (old_time > 500) {
+                            old_time = 0L
+                            oldNumContacts = 0
+
+                            gameEventsCallBackListener?.onRollingObjectStop(null)
+                        }
+                    }
+                }
+            }
     }
 
     @JvmStatic fun createRigidBody(item: PNodeObject): RigidBody {

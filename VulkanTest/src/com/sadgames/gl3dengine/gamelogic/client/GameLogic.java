@@ -283,7 +283,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         luaEngine.get(ON_GAME_RESTARTED_EVENT_HANDLER).call(CoerceJavaToLua.coerce(gameInstanceEntity));
     }
 
-    public void playTurn() {
+    public void playTurn() { //todo: another hidden call on camera animation
         setPrev_player_index(gameInstanceEntity.getCurrentPlayer());
         onPerformUserAction(ON_PLAY_TURN_EVENT_HANDLER, new LuaValue[]{});
     }
@@ -388,8 +388,6 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         testPlanet.loadObject();
         //scaleM(testPlanet.getTransformationMatrix(), 0, 2f, 2f, 2f);
         terrain.putChild(testPlanet, "PLANET");*/
-
-        //todo: mix sun color with pixel using rays map and brightness as alpha ???
 
         /** Lens flares */
         generateLens(glScene);
