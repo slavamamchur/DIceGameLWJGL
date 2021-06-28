@@ -1,8 +1,8 @@
 package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 
 import com.sadgames.sysutils.common.ColorUtils.convert2libGDX
-import com.sadgames.vulkan.newclass.Gdx2DPixmap
-import com.sadgames.vulkan.newclass.Pixmap
+import com.sadgames.vulkan.newclass.images.Gdx2DPixmap
+import com.sadgames.vulkan.newclass.images.Pixmap
 import java.nio.ByteBuffer
 
 class GlPixmap: Pixmap {

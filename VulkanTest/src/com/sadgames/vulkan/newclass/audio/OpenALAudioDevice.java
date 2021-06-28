@@ -16,15 +16,35 @@
 
 package com.sadgames.vulkan.newclass.audio;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import com.sadgames.vulkan.newclass.utils.GdxMathUtils;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL11;
 
-import com.sadgames.vulkan.newclass.GdxMathUtils;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
-import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL10.AL_BUFFERS_PROCESSED;
+import static org.lwjgl.openal.AL10.AL_FALSE;
+import static org.lwjgl.openal.AL10.AL_FORMAT_MONO16;
+import static org.lwjgl.openal.AL10.AL_FORMAT_STEREO16;
+import static org.lwjgl.openal.AL10.AL_GAIN;
+import static org.lwjgl.openal.AL10.AL_INVALID_VALUE;
+import static org.lwjgl.openal.AL10.AL_LOOPING;
+import static org.lwjgl.openal.AL10.AL_NO_ERROR;
+import static org.lwjgl.openal.AL10.AL_PLAYING;
+import static org.lwjgl.openal.AL10.AL_SOURCE_STATE;
+import static org.lwjgl.openal.AL10.alBufferData;
+import static org.lwjgl.openal.AL10.alDeleteBuffers;
+import static org.lwjgl.openal.AL10.alGenBuffers;
+import static org.lwjgl.openal.AL10.alGetError;
+import static org.lwjgl.openal.AL10.alGetSourcef;
+import static org.lwjgl.openal.AL10.alGetSourcei;
+import static org.lwjgl.openal.AL10.alSourcePlay;
+import static org.lwjgl.openal.AL10.alSourceQueueBuffers;
+import static org.lwjgl.openal.AL10.alSourceUnqueueBuffers;
+import static org.lwjgl.openal.AL10.alSourcef;
+import static org.lwjgl.openal.AL10.alSourcei;
 
 /** @author Nathan Sweet */
 public class OpenALAudioDevice implements AudioDevice {

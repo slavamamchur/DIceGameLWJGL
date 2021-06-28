@@ -1,7 +1,7 @@
 package com.sadgames.gl3dengine.glrender.scene.shaders
 
 import com.sadgames.sysutils.common.CommonUtils.readTextFromFile
-import com.sadgames.vulkan.newclass.ObjectIntMap
+import com.sadgames.vulkan.newclass.reflection.ObjectIntMap
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL20.*
@@ -45,7 +45,8 @@ class MyShaderProgram internal constructor(private val programList: Map<Int, Str
     var isCompiled = false
 
     var attributeNames: Array<String?>? = null; private set
-    val uniformTypes = ObjectIntMap<String>()
+    val uniformTypes =
+        ObjectIntMap<String>()
 
     init {
         require(programList[GL_VERTEX_SHADER]?.isNotEmpty() ?: false) { "vertex shader must not be null" }

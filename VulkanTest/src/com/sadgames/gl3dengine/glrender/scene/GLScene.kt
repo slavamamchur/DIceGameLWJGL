@@ -22,8 +22,8 @@ import com.sadgames.gl3dengine.manager.GDXPreferences
 import com.sadgames.gl3dengine.manager.TextureCache
 import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
 import com.sadgames.sysutils.common.CommonUtils.settingsManager
-import com.sadgames.vulkan.newclass.GLVersion
-import com.sadgames.vulkan.newclass.GLVersion.ApplicationType
+import com.sadgames.vulkan.newclass.gl_api.GLVersion
+import com.sadgames.vulkan.newclass.gl_api.GLVersion.ApplicationType
 import imgui.ImGui
 import imgui.classes.Context
 import imgui.impl.gl.ImplGL3
@@ -671,7 +671,13 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
 }
 
-private fun extractVersion(): GLVersion = GLVersion(ApplicationType.Desktop, glGetString(7938), glGetString(7936), glGetString(7937))
+private fun extractVersion(): GLVersion =
+    GLVersion(
+        ApplicationType.Desktop,
+        glGetString(7938),
+        glGetString(7936),
+        glGetString(7937)
+    )
 
 private fun extractGlExtensions(glVersion: GLVersion): String {
     var extensions = ""

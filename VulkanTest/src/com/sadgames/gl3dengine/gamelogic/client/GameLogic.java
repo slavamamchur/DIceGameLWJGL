@@ -34,9 +34,9 @@ import com.sadgames.gl3dengine.manager.TextureCache;
 import com.sadgames.gl3dengine.physics.PhysicalWorld;
 import com.sadgames.sysutils.common.CommonUtils;
 import com.sadgames.sysutils.common.LuaUtils;
-import com.sadgames.vulkan.newclass.Gdx2DPixmap;
-import com.sadgames.vulkan.newclass.Pixmap;
 import com.sadgames.vulkan.newclass.audio.OpenALSound;
+import com.sadgames.vulkan.newclass.images.Gdx2DPixmap;
+import com.sadgames.vulkan.newclass.images.Pixmap;
 
 import org.imgscalr.Scalr;
 import org.jetbrains.annotations.NotNull;

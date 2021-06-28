@@ -1,11 +1,12 @@
 package com.sadgames.gl3dengine.input
 
-import com.sadgames.gl3dengine.glrender.GLRendererInterface
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.DEFAULT_CAMERA_VERTICAL_FOV
+import com.sadgames.gl3dengine.glrender.GLRendererInterface
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
-import com.sadgames.vulkan.newclass.IGestureDetectorListener
+import com.sadgames.vulkan.newclass.input.IGestureDetectorListener
 
-class MyGestureListener(private val renderer: GLRendererInterface<SceneObjectsTreeItem>): IGestureDetectorListener {
+class MyGestureListener(private val renderer: GLRendererInterface<SceneObjectsTreeItem>):
+    IGestureDetectorListener {
 
     companion object {
         const val MOUSE_WHEEL_SENSITIVITY = 0.1f

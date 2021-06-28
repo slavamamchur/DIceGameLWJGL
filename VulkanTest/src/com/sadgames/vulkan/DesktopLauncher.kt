@@ -10,10 +10,10 @@ import com.sadgames.gl3dengine.glrender.GdxExt
 import com.sadgames.gl3dengine.glrender.scene.objects.SceneObjectsTreeItem
 import com.sadgames.gl3dengine.input.MyGestureListener
 import com.sadgames.gl3dengine.manager.GDXPreferences
-import com.sadgames.vulkan.newclass.MouseButtonCallBack
-import com.sadgames.vulkan.newclass.MouseMoveCallBack
-import com.sadgames.vulkan.newclass.MouseScrollCallBack
 import com.sadgames.vulkan.newclass.audio.OpenALLwjglAudio
+import com.sadgames.vulkan.newclass.input.MouseButtonCallBack
+import com.sadgames.vulkan.newclass.input.MouseMoveCallBack
+import com.sadgames.vulkan.newclass.input.MouseScrollCallBack
 import glm_.vec2.Vec2i
 import imgui.ImGui
 import imgui.classes.Context

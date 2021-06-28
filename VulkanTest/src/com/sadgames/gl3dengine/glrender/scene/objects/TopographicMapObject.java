@@ -1,10 +1,10 @@
 package com.sadgames.gl3dengine.glrender.scene.objects;
 
-import com.sadgames.sysutils.common.CommonUtils;
-import com.sadgames.vulkan.newclass.Gdx2DPixmap;
-import com.sadgames.vulkan.newclass.Pixmap;
 import com.sadgames.gl3dengine.glrender.scene.shaders.VBOShaderProgram;
 import com.sadgames.sysutils.common.ColorUtils;
+import com.sadgames.sysutils.common.CommonUtils;
+import com.sadgames.vulkan.newclass.images.Gdx2DPixmap;
+import com.sadgames.vulkan.newclass.images.Pixmap;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

@@ -10,7 +10,6 @@ import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
-
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.DEFAULT_GRAVITY_VECTOR
 import com.sadgames.gl3dengine.glrender.GdxExt
@@ -27,7 +26,7 @@ object PhysicalWorld {
     private val gameEventsCallBackListener: GameEventsCallbackInterface?; get() = GdxExt.gameLogic
     private var oldNumContacts = 0
     private var old_time = System.currentTimeMillis()
-    private var old_frame_time = 0L
+    //private var old_frame_time = 0f
 
     init {
         val dispatcher = CollisionDispatcher(DefaultCollisionConfiguration())
@@ -38,23 +37,27 @@ object PhysicalWorld {
     }
 
     fun simulateStep(time: Long, frameTime: Float) {
-        val realInterval = frameTime //if (old_frame_time == 0L) 0f else (time - old_frame_time) / 1000f
-        //old_frame_time = time
-        //System.out.println("frameTime:$realInterval")
+            //val realInterval = if (old_frame_time == 0f) 0f else (time - old_frame_time) / 1000f
+            //old_frame_time = time
 
-        physicalWorld.stepSimulation(realInterval, 0, realInterval)
+            physicalWorld.stepSimulation(frameTime, 0, frameTime)
 
-        for (i in 0 until physicalWorld.dispatcher.numManifolds)
-            if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts > 0
-                && physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts != oldNumContacts) {
-                 //TODO: for all object with tag "moving"
-                gameEventsCallBackListener?.onRollingObjectStart((physicalWorld.dispatcher.getManifoldByIndexInternal(i).body1 as CollisionObject).userPointer as GameItemObject)
+            for (i in 0 until physicalWorld.dispatcher.numManifolds)
+                if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts > 0
+                    && physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts != oldNumContacts
+                ) {
+                    gameEventsCallBackListener?.onRollingObjectStart(
+                        (physicalWorld.dispatcher.getManifoldByIndexInternal(
+                            i
+                        ).body1 as CollisionObject).userPointer as GameItemObject
+                    )
 
-                oldNumContacts = physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts
-                old_time = time
-            }
-            else if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts == 0 || (time - old_time > 150) )
-                    gameEventsCallBackListener?.onRollingObjectStop(null) //TODO: Get Object ref from Collision example
+                    oldNumContacts =
+                        physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts
+                    old_time = time //=0
+                } else //todo: error - too small interval to detect movement and unexpected stop !!! //old_time += frameTime
+                    if (physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts == 0 || (time - old_time > 150))
+                        gameEventsCallBackListener?.onRollingObjectStop(null)
     }
 
     @JvmStatic fun createRigidBody(item: PNodeObject): RigidBody {

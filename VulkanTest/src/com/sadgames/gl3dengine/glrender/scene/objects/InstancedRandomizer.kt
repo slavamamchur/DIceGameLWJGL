@@ -12,15 +12,13 @@ import com.sadgames.sysutils.common.clamp
 import com.sadgames.sysutils.common.plus
 import com.sadgames.sysutils.common.times
 import com.sadgames.sysutils.common.unaryMinus
-import com.sadgames.vulkan.newclass.Gdx2DPixmap
-import com.sadgames.vulkan.newclass.Pixmap
-import org.imgscalr.Scalr
+import com.sadgames.vulkan.newclass.images.Gdx2DPixmap
+import com.sadgames.vulkan.newclass.images.Pixmap
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.*
 import javax.vecmath.Vector2f
 import javax.vecmath.Vector4f
-import kotlin.math.roundToInt
 
 open class InstancedRandomizer(logic: GameEventsCallbackInterface?,
                           objFileName: String,
@@ -106,7 +104,11 @@ open class InstancedRandomizer(logic: GameEventsCallbackInterface?,
         paint.fillRect(0, 0, dimension, dimension)
         logic?.onPrepareMapTexture(dstImage)
 
-        return Pixmap(Gdx2DPixmap(dstImage))
+        return Pixmap(
+            Gdx2DPixmap(
+                dstImage
+            )
+        )
     }
 
     private fun world2Map(path: Pixmap, place: Vector2f) =

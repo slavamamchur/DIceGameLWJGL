@@ -16,10 +16,11 @@
 
 package com.sadgames.vulkan.newclass.audio;
 
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import com.sadgames.vulkan.newclass.reflection.IntArray;
+import com.sadgames.vulkan.newclass.reflection.IntMap;
+import com.sadgames.vulkan.newclass.reflection.LongMap;
+import com.sadgames.vulkan.newclass.reflection.ObjectMap;
+import com.sadgames.vulkan.newclass.utils.GdxMathUtils;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.openal.AL;
@@ -28,13 +29,29 @@ import org.lwjgl.openal.ALC;
 import org.lwjgl.openal.ALC10;
 import org.lwjgl.openal.ALCCapabilities;
 
-import com.sadgames.vulkan.newclass.GdxMathUtils;
-import com.sadgames.vulkan.newclass.IntArray;
-import com.sadgames.vulkan.newclass.IntMap;
-import com.sadgames.vulkan.newclass.LongMap;
-import com.sadgames.vulkan.newclass.ObjectMap;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
-import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL10.AL_BUFFER;
+import static org.lwjgl.openal.AL10.AL_NO_ERROR;
+import static org.lwjgl.openal.AL10.AL_ORIENTATION;
+import static org.lwjgl.openal.AL10.AL_PAUSED;
+import static org.lwjgl.openal.AL10.AL_PLAYING;
+import static org.lwjgl.openal.AL10.AL_POSITION;
+import static org.lwjgl.openal.AL10.AL_SOURCE_STATE;
+import static org.lwjgl.openal.AL10.AL_STOPPED;
+import static org.lwjgl.openal.AL10.AL_VELOCITY;
+import static org.lwjgl.openal.AL10.alDeleteSources;
+import static org.lwjgl.openal.AL10.alGenSources;
+import static org.lwjgl.openal.AL10.alGetError;
+import static org.lwjgl.openal.AL10.alGetSourcei;
+import static org.lwjgl.openal.AL10.alListenerfv;
+import static org.lwjgl.openal.AL10.alSourcePause;
+import static org.lwjgl.openal.AL10.alSourcePlay;
+import static org.lwjgl.openal.AL10.alSourceStop;
+import static org.lwjgl.openal.AL10.alSourcei;
 import static org.lwjgl.openal.ALC10.ALC_FALSE;
 import static org.lwjgl.openal.ALC10.ALC_REFRESH;
 import static org.lwjgl.openal.ALC10.ALC_SYNC;

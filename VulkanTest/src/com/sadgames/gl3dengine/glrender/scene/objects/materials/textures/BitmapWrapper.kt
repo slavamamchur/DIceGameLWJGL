@@ -5,8 +5,8 @@ package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 //import com.sadgames.sysutils.common.ETC1Utils.ETC1Texture
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.TEXTURE_RESOLUTION_SCALE
 import com.sadgames.gl3dengine.glrender.GdxExt
-import com.sadgames.vulkan.newclass.Gdx2DPixmap
-import com.sadgames.vulkan.newclass.Pixmap
+import com.sadgames.vulkan.newclass.images.Gdx2DPixmap
+import com.sadgames.vulkan.newclass.images.Pixmap
 //import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.GlPixmap.Companion.createScaledTexture
 import java.nio.ByteBuffer
 
@@ -22,7 +22,12 @@ class BitmapWrapper private constructor(rawData: ByteBuffer?, val width: Int, va
     //constructor(packedImg: ETC1Texture): this(packedImg.data, packedImg.width, packedImg.height, true)
     constructor(pixmap: Pixmap?): this(pixmap?.pixels, pixmap?.width ?: 0, pixmap?.height ?: 0, false) { this.pixmap = pixmap }
     constructor(color: Int): this(GlPixmap(2, 2, Pixmap.Format.RGBA8888, color))
-    constructor(encodedImage: ByteBuffer): this((Pixmap(Gdx2DPixmap(encodedImage, TEXTURE_RESOLUTION_SCALE[GdxExt.preferences.graphicsQualityLevel.ordinal]))))
+    constructor(encodedImage: ByteBuffer): this((Pixmap(
+        Gdx2DPixmap(
+            encodedImage,
+            TEXTURE_RESOLUTION_SCALE[GdxExt.preferences.graphicsQualityLevel.ordinal]
+        )
+    )))
 
     fun release() {
         try { pixmap?.dispose() }
