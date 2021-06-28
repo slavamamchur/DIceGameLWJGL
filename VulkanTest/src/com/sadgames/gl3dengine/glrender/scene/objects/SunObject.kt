@@ -25,7 +25,7 @@ open class SunObject(protected val glScene: GLRendererInterface<SceneObjectsTree
 
     val brightness: Float
         get() {
-            println(visibilityRate)
+            //println(visibilityRate)
             val sunCoords = get2DPos()
 
             return if (sunCoords != null)

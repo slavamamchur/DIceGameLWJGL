@@ -283,7 +283,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
         luaEngine.get(ON_GAME_RESTARTED_EVENT_HANDLER).call(CoerceJavaToLua.coerce(gameInstanceEntity));
     }
 
-    public void playTurn() { //todo: another hidden call on camera animation
+    public void playTurn() {
         setPrev_player_index(gameInstanceEntity.getCurrentPlayer());
         onPerformUserAction(ON_PLAY_TURN_EVENT_HANDLER, new LuaValue[]{});
     }

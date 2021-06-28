@@ -13,7 +13,6 @@ import com.bulletphysics.linearmath.Transform
 import com.sadgames.gl3dengine.gamelogic.GameEventsCallbackInterface
 import com.sadgames.gl3dengine.glrender.GLRenderConsts.DEFAULT_GRAVITY_VECTOR
 import com.sadgames.gl3dengine.glrender.GdxExt
-import com.sadgames.gl3dengine.glrender.scene.objects.GameItemObject
 import com.sadgames.gl3dengine.glrender.scene.objects.PNodeObject
 import java.util.*
 import javax.vecmath.Matrix4f
@@ -37,26 +36,29 @@ object PhysicalWorld {
         gameEventsCallBackListener?.onInitPhysics(physicalWorld)
     }
 
-    fun simulateStep(time: Long, frameTime: Float) {
-            //val realInterval = if (old_frame_time == 0f) 0f else (time - old_frame_time) / 1000f
-            //old_frame_time = time
-
+    fun simulatePhysicsTimeStep(frameTime: Float) {
             physicalWorld.stepSimulation(frameTime, 0, frameTime)
 
             for (i in 0 until physicalWorld.dispatcher.numManifolds) {
                 val numContacts = physicalWorld.dispatcher.getManifoldByIndexInternal(i).numContacts
+                val pObj = (physicalWorld.dispatcher.getManifoldByIndexInternal(i).body1 as CollisionObject).userPointer as PNodeObject
+
                 if (numContacts > 0 && numContacts != oldNumContacts) {
                     oldNumContacts = numContacts
                     old_time = 0L
 
-                    gameEventsCallBackListener?.onRollingObjectStart(
-                        (physicalWorld.dispatcher.getManifoldByIndexInternal(i).body1 as CollisionObject).userPointer as GameItemObject)
+                    gameEventsCallBackListener?.onRollingObjectStart(pObj)
                 } else {
-                    if (numContacts == 0 && numContacts != oldNumContacts) {
+                    if (numContacts > 0 && numContacts == oldNumContacts) {
                         old_time += (frameTime * 1000).roundToLong()
-                        if (old_time > 500) {
+
+                        if (old_time >= 1500L) {
                             old_time = 0L
                             oldNumContacts = 0
+
+                            physicalWorld.removeRigidBody(pObj._body)
+                            pObj._body = null
+                            gameEventsCallBackListener?.onStopMovingObject(pObj)
 
                             gameEventsCallBackListener?.onRollingObjectStop(null)
                         }

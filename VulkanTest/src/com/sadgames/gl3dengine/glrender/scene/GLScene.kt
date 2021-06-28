@@ -20,7 +20,7 @@ import com.sadgames.gl3dengine.glrender.scene.postprocess.PostProcessStep
 import com.sadgames.gl3dengine.glrender.scene.shaders.*
 import com.sadgames.gl3dengine.manager.GDXPreferences
 import com.sadgames.gl3dengine.manager.TextureCache
-import com.sadgames.gl3dengine.physics.PhysicalWorld.simulateStep
+import com.sadgames.gl3dengine.physics.PhysicalWorld.simulatePhysicsTimeStep
 import com.sadgames.sysutils.common.CommonUtils.settingsManager
 import com.sadgames.vulkan.newclass.gl_api.GLVersion
 import com.sadgames.vulkan.newclass.gl_api.GLVersion.ApplicationType
@@ -252,9 +252,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
     }
 
-    private fun simulatePhysics(currentTime: Long) {
+    private fun simulatePhysics() {
         if (isSimulating)
-            simulateStep(currentTime, frameTime / 1000f)
+            simulatePhysicsTimeStep(frameTime / 1000f)
     }
 
     private fun calculateCameraPosition() {
@@ -265,12 +265,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     private fun calculateWavesMovingFactor() {
         try {
-            //if (!isGlES30Supported()) {
             moveFactor += WAVE_SPEED * frameTime / 1000
             moveFactor %= 1f
-            //}
-            //else
-            //moveFactor += 0.005;
         } catch (e: Exception) {
             moveFactor = 0f
         }
@@ -278,23 +274,12 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     private fun calculateObjectsAnimations(sceneObject: SceneObjectsTreeItem?): Void? {
         val gl3DObject = sceneObject as AbstractGL3DObject
-        val animation = gl3DObject.animation
 
-        if (animation?.isInProgress == true)
-            animation.animate(gl3DObject)
-        else if (isSimulating && gl3DObject is PNodeObject
-                 && gl3DObject.tag == PNodeObject.MOVING_OBJECT
-                 && gl3DObject._body != null) {
-            val transform = gl3DObject.worldTransformActual
-
-            if (gl3DObject.worldTransformOld != transform)
-                gl3DObject.setWorldTransformMatrix(transform)
-            else {
-                physicalWorldObject?.removeRigidBody(gl3DObject._body)
-                gl3DObject._body = null
-                gameEventsCallBackListener?.onStopMovingObject(gl3DObject)
-            }
-        }
+        if (gl3DObject.animation?.isInProgress == true)
+            gl3DObject.animation.animate(gl3DObject)
+        else
+            if (isSimulating && gl3DObject is PNodeObject && gl3DObject.tag == PNodeObject.MOVING_OBJECT && gl3DObject._body != null)
+                gl3DObject.setWorldTransformMatrix(gl3DObject.worldTransformActual)
 
         return null
     }
@@ -468,7 +453,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         gameEventsCallBackListener?.onBeforeDrawFrame(frameTime)
 
-        simulatePhysics(System.currentTimeMillis())
+        simulatePhysics()
         calculateSceneTransformations()
 
         glEnable(GL_DEPTH_TEST)
