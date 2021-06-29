@@ -18,11 +18,13 @@ uniform float uyPixelOffset;
 
 varying vec3 wPosition;
 varying vec2 v_Texture;
-//varying vec3 v_Normal;
+varying vec3 n_normal;
 varying float visibility;
 in vec4 vShadowCoord;
 varying float vdiffuse;
 varying float vspecular;
+
+highp vec4 shadowMapPosition;
 
 /*highp float calcDynamicBias(highp float bias, vec3 normal) {
     highp float result;
@@ -33,44 +35,46 @@ varying float vspecular;
     return clamp(result, 0.0, 0.3);
 }*/
 
-//float unpack (vec4 packedZValue) {
-    /*const highp vec4 bitShifts = vec4(1.0 / (256.0 * 256.0 * 256.0),
-                                    1.0 / (256.0 * 256.0),
-                                    1.0 / 256.0,
-                                    1);
-
-    return dot(packedZValue , bitShifts);*/
-
-    //return packedZValue.x * 255.0  + (packedZValue.y * 255.0 + (packedZValue.z * 255.0 + packedZValue.w) / 255.0) / 255.0;
-
-    //return packedZValue.r;
-//}
-
-float calcShadowRate(/*vec3 nNormal,*/ vec2 offSet) {
-        float bias = 0.00005; //todo: calcDynamicBias(0.001, nNormal); but as in youtube example
-        vec4 shadowMapPosition = vShadowCoord;
-        if (shadowMapPosition.z > 1.0)
-            shadowMapPosition.z = 1.0;
-        vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
-        //float distanceFromLight = unpack(packedZValue);
-
-        return (/*distanceFromLight*/packedZValue.r > (shadowMapPosition.z /** 255.0*/ - bias)) ? 1.0 : 0.0;
+float calcShadowRate(vec2 coords)  {
+    const highp float BIAS = 1.0 / 3840.0;
+    return step(shadowMapPosition.z - BIAS, texture2D(uShadowTexture, coords).r);
 }
 
-float shadowPCF(/*vec3 nNormal,*/ float n) { //pcf nxn
-	float shadow = 1.0;
+float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
+    vec2 pixelPos = coords / texelSize + vec2(0.5);
+    vec2 fracPart = fract(pixelPos);
+    vec2 startTexel = (pixelPos - fracPart) * texelSize;
 
-	float cnt = (n - 1.0) * 0.5;
-	for (float y = -cnt; y <= cnt; y = y + 1.0) {
-		for (float x = -cnt; x <= cnt; x = x + 1.0) {
-			shadow += calcShadowRate(/*nNormal,*/ vec2(x,y));
-		}
-	}
+    float blTexel = calcShadowRate(startTexel);
+    float brTexel = calcShadowRate(startTexel + vec2(texelSize.x, 0.0));
+    float tlTexel = calcShadowRate(startTexel + vec2(0.0, texelSize.y));
+    float trTexel = calcShadowRate(startTexel + texelSize);
 
-	shadow /= (n * n);
-	shadow += 0.2;
+    float mixA = mix(blTexel, tlTexel, fracPart.y);
+    float mixB = mix(brTexel, trTexel, fracPart.y);
 
-	return shadow;
+    return mix(mixA, mixB, fracPart.x);
+}
+
+float shadowPCF(vec2 coords, vec2 texelSize) {
+    const int ROW_CNT = 4;
+    const float CNT = (ROW_CNT - 1.0) * 0.5;
+    const int SQUARE_CNT = ROW_CNT * ROW_CNT;
+    const float DIV_BY = 1.0 / SQUARE_CNT;
+
+    float shadow = 1.0;
+
+    for (float y = -CNT; y <= CNT; y = y + 1.0) {
+        for (float x = -CNT; x <= CNT; x = x + 1.0) {
+            vec2 offset = vec2(x, y) * texelSize;
+            shadow += sampleShadowMapLinear(coords + offset, texelSize);
+        }
+    }
+
+    shadow *= DIV_BY;
+    shadow += 0.2;
+
+    return shadow;
 }
 
 vec4 calcLightColor(float shadowRate) {
@@ -105,13 +109,15 @@ void main()
 {
       vec4 diffuseColor = texture2D(u_TextureUnit, v_Texture);
 
-      /*if (diffuseColor.a < 0.5) {
-         discard;
-      }*/
+      highp float shadowRate = 1.0;
+      if (vShadowCoord.w > 0.0) {
+          shadowMapPosition = vShadowCoord;
+          if (shadowMapPosition.z > 1.0)
+              shadowMapPosition.z = 1.0;
 
-      float shadowRate = 1.0;
-      shadowRate = shadowPCF(/*n_normal,*/ 4.0);
-      shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
+          shadowRate = shadowPCF(shadowMapPosition.xy, vec2(uxPixelOffset, uyPixelOffset));
+          shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
+      }
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
 

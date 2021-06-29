@@ -40,6 +40,8 @@ varying vec3 tangent;
 vec3 nNormal;
 vec3 nLightvector;
 vec3 nLookvector;
+highp vec4 shadowMapPosition;
+highp float bias;
 
 const float nmapTiling = 12.0;
 const float shineDumper = 40.0;
@@ -79,35 +81,52 @@ vec3 calcNormal(vec2 uv, mat3 tangentSpace, sampler2D normalMap, int page) {
     return result;
 }
 
-highp float unpack (highp vec4 packedZValue) {
-    return packedZValue.r;
+/*highp float calcDynamicBias(highp float bias, vec3 normal) {
+    highp float result;
+    highp vec3 nLightPos = normalize(u_lightPositionF);
+    highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
+    result = bias * tan(acos(cosTheta));
+
+    return clamp(result, 0.0, 0.3);
+}*/
+
+float calcShadowRate(vec2 coords) { return step(shadowMapPosition.z + bias, texture2D(uShadowTexture, coords).r); }
+
+float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
+    vec2 pixelPos = coords / texelSize + vec2(0.5);
+    vec2 fracPart = fract(pixelPos);
+    vec2 startTexel = (pixelPos - fracPart) * texelSize;
+
+    float blTexel = calcShadowRate(startTexel);
+    float brTexel = calcShadowRate(startTexel + vec2(texelSize.x, 0.0));
+    float tlTexel = calcShadowRate(startTexel + vec2(0.0, texelSize.y));
+    float trTexel = calcShadowRate(startTexel + texelSize);
+
+    float mixA = mix(blTexel, tlTexel, fracPart.y);
+    float mixB = mix(brTexel, trTexel, fracPart.y);
+
+    return mix(mixA, mixB, fracPart.x);
 }
 
-float calcShadowRate(vec2 offSet) {
-        highp float bias = 0.00005;
-        highp vec4 shadowMapPosition = vShadowCoord/* / vShadowCoord.w - > for spot lights only (low priority) */;
-        if (shadowMapPosition.z > 1.0)
-            shadowMapPosition.z = 1.0;
-        highp vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.05, 0.0)));
-        highp float distanceFromLight = unpack(packedZValue);
+float shadowPCF(vec2 coords, vec2 texelSize) {
+    const int ROW_CNT = 4;
+    const float CNT = (ROW_CNT - 1.0) * 0.5;
+    const int SQUARE_CNT = ROW_CNT * ROW_CNT;
+    const float DIV_BY = 1.0 / SQUARE_CNT;
 
-        return float(distanceFromLight > (shadowMapPosition.z - bias));
-}
+    float shadow = 1.0;
 
-float shadowPCF(float n) {
-	float shadow = 1.0;
+    for (float y = -CNT; y <= CNT; y = y + 1.0) {
+        for (float x = -CNT; x <= CNT; x = x + 1.0) {
+            vec2 offset = vec2(x, y) * texelSize;
+            shadow += sampleShadowMapLinear(coords + offset, texelSize);
+        }
+    }
 
-	float cnt = (n - 1.0) * 0.5;
-	for (float y = -cnt; y <= cnt; y = y + 1.0) {
-		for (float x = -cnt; x <= cnt; x = x + 1.0) {
-			shadow += calcShadowRate(vec2(x,y));
-		}
-	}
+    shadow *= DIV_BY;
+    shadow += 0.2;
 
-	shadow /= (n * n);
-	shadow += 0.2;
-
-	return shadow;
+    return shadow;
 }
 
 vec4 calcLightColor(float shadowRate) {
@@ -197,8 +216,13 @@ void main()
 
       highp float shadowRate = 1.0;
       if (vShadowCoord.w > 0.0) {
-        shadowRate = shadowPCF(4.0);
-        shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
+          bias = 0.005; // between 0.00005; //todo: calcDynamicBias(0.005, nNormal); but as in youtube example !!!
+          shadowMapPosition = vShadowCoord; /*todo: / vShadowCoord.w - > for spot lights only (low priority) */;
+          if (shadowMapPosition.z > 1.0)
+            shadowMapPosition.z = 1.0;
+
+          shadowRate = shadowPCF(shadowMapPosition.xy, vec2(uxPixelOffset, uyPixelOffset));
+          shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
       }
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);

@@ -61,7 +61,7 @@ float calcShadowRate(vec3 nNormal, vec2 offSet) {
         highp vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.00005, 0.0)));
         highp float distanceFromLight = unpack(packedZValue);
 
-        return distanceFromLight > (shadowMapPosition.z /** 255.0*/ - bias) ? 1.0 : 0.0;
+        return distanceFromLight + bias >= (shadowMapPosition.z /** 255.0*/) ? 1.0 : 0.0;
 }
 
 float shadowPCF(vec3 nNormal, float n) {

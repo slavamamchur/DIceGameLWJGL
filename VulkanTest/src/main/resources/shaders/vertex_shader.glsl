@@ -18,7 +18,7 @@ uniform int u_isCubeMap;
 
 varying vec3 wPosition;
 varying vec2 v_Texture;
-//varying vec3 v_Normal;
+varying vec3 n_normal;
 varying float visibility;
 out vec4 vShadowCoord;
 varying float vdiffuse;
@@ -44,7 +44,7 @@ void main()
     vec3 lightvector = u_lightPosition - v_Position;
     vec3 lookvector = /*u_camera*/ -v_Position;
 
-    vec3 n_normal = normalize(v_Normal);
+    n_normal = normalize(v_Normal);
     vec3 n_lightvector = normalize(lightvector);
     vdiffuse = max(dot(n_normal, n_lightvector), 0.0);
 

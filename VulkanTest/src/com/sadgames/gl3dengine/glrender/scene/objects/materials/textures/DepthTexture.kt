@@ -15,6 +15,8 @@ class DepthTexture(width: Int, height: Int): RGBATexture(width, height) {
   override fun setTextureParams() {
     super.setTextureParams()
 
+    glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, TextureParams.TextureFilter.Nearest.gLEnum)
+    glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, TextureParams.TextureFilter.Nearest.gLEnum)
     glTexParameteri(textureType, GL_TEXTURE_WRAP_S, TextureWrap.CLampToBorder.gLEnum)
     glTexParameteri(textureType, GL_TEXTURE_WRAP_T, TextureWrap.CLampToBorder.gLEnum)
     glTexParameterfv(textureType, GL_TEXTURE_BORDER_COLOR, floatArrayOf(1.0f, 1.0f, 1.0f, 1.0f))

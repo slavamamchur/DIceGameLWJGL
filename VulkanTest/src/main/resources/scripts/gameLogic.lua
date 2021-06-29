@@ -309,7 +309,7 @@ animateChip = function(gameInstanceEntity, delegate, endGamePoint, playersCnt, c
                                    playersCnt,
                            (gameInstanceEntity:getStepsToGo() == 0) or (endGamePoint:getType():ordinal() == POINT_TYPE_FINISH))
     local move = gameScene:createTranslateAnimation(chip:getPlace().x, chipPlace.x,
-                                                                   0.0, 0.0,
+                                                                   0.0, 0.0, --todo: check correct height on map
                                                                    chip:getPlace().y, chipPlace.y,
                                                                    CHIP_ANIMATION_DURATION)
     chip:setPlace(chipPlace)
