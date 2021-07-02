@@ -4,7 +4,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.Texture
 import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.TextureParams.TextureFilter.MipMapLinearLinear
 import org.lwjgl.opengl.GL20
 
-class TextureParams(val filterMode: TextureFilter, val wrapMode: TextureWrap) {
+class TextureParams(var filterMode: TextureFilter, var wrapMode: TextureWrap) {
     enum class TextureFilter(val gLEnum: Int) {
         /** Fetch the nearest texel that best maps to the pixel on screen.  */
         Nearest(GL20.GL_NEAREST),

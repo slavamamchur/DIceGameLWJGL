@@ -235,6 +235,7 @@ onPlayerContinueTurn = function(gameInstance)
 end
 
 onDiceObjectInit = function(gameObject)
+    --gameObject:setCastShadow(false)
     gameObject:hideObject()
 end
 

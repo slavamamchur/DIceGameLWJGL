@@ -175,7 +175,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         val shadowMapHeight = (mDisplayHeight * shadowMapResolutionScaleFactor).roundToInt()
 
         lightSource!!.updateViewProjectionMatrix(shadowMapWidth, shadowMapHeight)
-        shadowMapFBO = if (hasDepthTextureExtension) DepthBufferFBO(shadowMapWidth, shadowMapHeight) else ColorBufferFBO(shadowMapWidth, shadowMapHeight, DEPTH_BUFFER_CLEAR_COLOR)
+        shadowMapFBO = DepthBufferFBO(shadowMapWidth, shadowMapHeight) //ColorBufferFBO(shadowMapWidth, shadowMapHeight, DEPTH_BUFFER_CLEAR_COLOR, isFloat32 = true) //todo: check textureProj on DepthTexture
     }
 
     private fun generateMainRenderFBO() {
@@ -459,10 +459,13 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         glEnable(GL_DEPTH_TEST)
 
         /** Render ShadowMap  */
+        glEnable(GL_POLYGON_OFFSET_FILL)
+        glPolygonOffset(2.0f, 2.0f)
         glCullFace(GL_FRONT)
         renderItems(shadowMapFBO,
                     getCachedShader(GLObjectType.SHADOW_MAP_OBJECT)!!, {drawObjectIntoShadowMap(it)},
                     {condition -> (condition as AbstractGL3DObject).isCastShadow})
+        glDisable(GL_POLYGON_OFFSET_FILL)
         glCullFace(GL_BACK)
 
         glEnable(GL20.GL_BLEND)

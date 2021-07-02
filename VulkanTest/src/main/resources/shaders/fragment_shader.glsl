@@ -5,7 +5,7 @@ layout (location = 1) out vec4 lightBuffer;
 layout (location = 2) out vec4 raysBuffer;
 
 uniform sampler2D u_TextureUnit;
-uniform sampler2D uShadowTexture;
+uniform sampler2DShadow uShadowTexture;
 
 uniform float u_AmbientRate;
 uniform float u_DiffuseRate;
@@ -24,7 +24,7 @@ in vec4 vShadowCoord;
 varying float vdiffuse;
 varying float vspecular;
 
-highp vec4 shadowMapPosition;
+vec3 shadowMapPosition;
 
 /*highp float calcDynamicBias(highp float bias, vec3 normal) {
     highp float result;
@@ -33,45 +33,26 @@ highp vec4 shadowMapPosition;
     result = bias * tan(acos(cosTheta));
 
     return clamp(result, 0.0, 0.3);
-}*/
+}
 
-float calcShadowRate(vec2 coords)  {
+float calcShadowRate(vec2 offset)  {
     const highp float BIAS = 1.0 / 3840.0;
-    return step(shadowMapPosition.z - BIAS, texture2D(uShadowTexture, coords).r);
-}
+    return step(shadowMapPosition.z - BIAS, textureProj(uShadowTexture, shadowMapPosition + vec4(offset, 0.00005, 0.0)).r);
+} */
 
-float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
-    vec2 pixelPos = coords / texelSize + vec2(0.5);
-    vec2 fracPart = fract(pixelPos);
-    vec2 startTexel = (pixelPos - fracPart) * texelSize;
-
-    float blTexel = calcShadowRate(startTexel);
-    float brTexel = calcShadowRate(startTexel + vec2(texelSize.x, 0.0));
-    float tlTexel = calcShadowRate(startTexel + vec2(0.0, texelSize.y));
-    float trTexel = calcShadowRate(startTexel + texelSize);
-
-    float mixA = mix(blTexel, tlTexel, fracPart.y);
-    float mixB = mix(brTexel, trTexel, fracPart.y);
-
-    return mix(mixA, mixB, fracPart.x);
-}
-
-float shadowPCF(vec2 coords, vec2 texelSize) {
-    const int ROW_CNT = 4;
+float shadowPCF(vec2 texelSize) {
+    const int ROW_CNT = 3;
     const float CNT = (ROW_CNT - 1.0) * 0.5;
     const int SQUARE_CNT = ROW_CNT * ROW_CNT;
-    const float DIV_BY = 1.0 / SQUARE_CNT;
 
     float shadow = 1.0;
-
     for (float y = -CNT; y <= CNT; y = y + 1.0) {
         for (float x = -CNT; x <= CNT; x = x + 1.0) {
-            vec2 offset = vec2(x, y) * texelSize;
-            shadow += sampleShadowMapLinear(coords + offset, texelSize);
+            shadow += texture(uShadowTexture, shadowMapPosition + vec3(vec2(x, y) * texelSize, 0.0));
         }
     }
 
-    shadow *= DIV_BY;
+    shadow /= SQUARE_CNT;
     shadow += 0.2;
 
     return shadow;
@@ -109,15 +90,14 @@ void main()
 {
       vec4 diffuseColor = texture2D(u_TextureUnit, v_Texture);
 
-      highp float shadowRate = 1.0;
-      if (vShadowCoord.w > 0.0) {
-          shadowMapPosition = vShadowCoord;
-          if (shadowMapPosition.z > 1.0)
-              shadowMapPosition.z = 1.0;
+      //highp float shadowRate = 1.0;
+      //if (vShadowCoord.w > 0.0) {
+      shadowMapPosition = vShadowCoord.xyz;
+      shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
 
-          shadowRate = shadowPCF(shadowMapPosition.xy, vec2(uxPixelOffset, uyPixelOffset));
-          shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
-      }
+      float shadowRate = shadowPCF(vec2(uxPixelOffset, uyPixelOffset));
+            shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
+      //}
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
 

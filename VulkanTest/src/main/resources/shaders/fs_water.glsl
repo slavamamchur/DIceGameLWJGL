@@ -11,7 +11,7 @@ uniform sampler2D u_RefractionMapUnit;
 uniform sampler2D depthMap;
 uniform sampler2D u_NormalMapUnit;
 uniform sampler2D u_DUDVMapUnit;
-uniform sampler2D uShadowTexture;
+uniform sampler2DShadow uShadowTexture;
 
 uniform float u_AmbientRate;
 uniform float u_DiffuseRate;
@@ -41,36 +41,26 @@ const float nmapTiling = 6.0;
 const float waveStrength = 0.02;
 const vec2 center = vec2(0.0, 0.0);
 
-highp float calcDynamicBias(highp float bias, vec3 normal) {
+/*highp float calcDynamicBias(highp float bias, vec3 normal) {
     highp float result;
     highp vec3 nLightPos = normalize(u_lightPositionF);
     highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
     result = bias * tan(acos(cosTheta));
 
     return clamp(result, 0.0, 0.3);
+}*/
+
+float calcShadowRate(vec3 coord, vec2 offSet) {
+    return texture(uShadowTexture, (coord + vec3(offSet * vec2(uxPixelOffset, uyPixelOffset), 0.0)));
 }
 
-highp float unpack (highp vec4 packedZValue) {
-    //return packedZValue.x * 255.0  + (packedZValue.y * 255.0 + (packedZValue.z * 255.0 + packedZValue.w) / 255.0) / 255.0;
-    return packedZValue.r;
-}
-
-float calcShadowRate(vec3 nNormal, vec2 offSet) {
-        highp float bias = 0.00005; //calcDynamicBias(0.001, nNormal);
-        highp vec4 shadowMapPosition = vShadowCoord /*todo: / vShadowCoord.w - > for spot lights only (low priority) */;
-        highp vec4 packedZValue = texture2DProj(uShadowTexture, (shadowMapPosition + vec4(offSet.x * uxPixelOffset, offSet.y * uyPixelOffset, 0.00005, 0.0)));
-        highp float distanceFromLight = unpack(packedZValue);
-
-        return distanceFromLight + bias >= (shadowMapPosition.z /** 255.0*/) ? 1.0 : 0.0;
-}
-
-float shadowPCF(vec3 nNormal, float n) {
+float shadowPCF(vec3 coord, float n) {
 	float shadow = 1.0;
 
 	float cnt = (n - 1.0) * 0.5;
 	for (float y = -cnt; y <= cnt; y = y + 1.0) {
 		for (float x = -cnt; x <= cnt; x = x + 1.0) {
-			shadow += calcShadowRate(nNormal, vec2(x,y));
+			shadow += calcShadowRate(coord, vec2(x,y));
 		}
 	}
 
@@ -156,7 +146,7 @@ void main()
           vec2 ndc = clipSpace2NDC(clipSpace);
 
           float waterDepth = getNormalizedDistance(0.01, 100.0, texture2D(depthMap, ndc).r) - getNormalizedDistance(0.01, 100.0,  gl_FragCoord.z);
-          float depthFactor = clamp(waterDepth, 0.0, 1.0);
+          float depthFactor = clamp(waterDepth, 0.0, 1.0); //todo: increase value because near side too small
 
           uv = texture2D(u_DUDVMapUnit, vec2(tc.x + u_RndSeed, tc.y)).rg * 0.1;
           uv = tc + vec2(uv.x, uv.y + u_RndSeed);
@@ -183,22 +173,22 @@ void main()
             diffuseColor = mix(refractionColor, waterColour, reflectiveFactor);
           }
 
-      highp float shadowRate = 1.0;
-      if (vShadowCoord.w > 0.0) {
-        shadowRate = shadowPCF(n_normal, 4.0);
-        shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
-      }
+    //Shadows:
+    vec3 shadowMapPosition = vShadowCoord.xyz;
+    shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
+    float shadowRate = shadowPCF(shadowMapPosition, 3.0);
+    shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
 
-      //breethe
-      float alpha = clamp(depthFactor * 32.0, 0.0, 1.0);
-      if (alpha <= 0.9) {
-            diffuseColor = mix(diffuseColor, vec4(1.0), 1.0 - alpha);
-      }
+    //breethe:
+    float alpha = clamp(depthFactor * 32.0, 0.0, 1.0);
+    if (alpha <= 0.9) {
+          diffuseColor = mix(diffuseColor, vec4(1.0), 1.0 - alpha);
+    }
 
     vec4 fragColor = calcPhongLightingMolel(n_normal, n_lightvector, n_lookvector, diffuseColor, shadowRate, 1.0);
       fragColor.a = alpha;
 
-    //FOG
+    //FOG:
     float disFactor = 1.0;
     if (u_is2DModeF != 1) {
         disFactor = smoothstep(3.5, 5.0, distance(center, wPosition.xz));

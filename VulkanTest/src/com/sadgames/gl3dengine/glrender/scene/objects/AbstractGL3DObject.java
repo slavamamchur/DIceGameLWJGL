@@ -6,6 +6,7 @@ import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.Abstrac
 import com.sadgames.gl3dengine.glrender.scene.shaders.VBOShaderProgram;
 import com.sadgames.gl3dengine.glrender.scene.shaders.params.GLShaderParam;
 import com.sadgames.gl3dengine.glrender.scene.shaders.params.VBOData;
+import com.sadgames.gl3dengine.manager.GDXPreferences;
 import com.sadgames.gl3dengine.manager.TextureCache;
 
 import org.apache.commons.lang3.StringUtils;
@@ -254,7 +255,7 @@ public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements
     public boolean isCastShadow() {
         return isCastShadow;
     }
-    protected void setCastShadow(boolean castShadow) { this.isCastShadow = castShadow; }
+    public void setCastShadow(boolean castShadow) { this.isCastShadow = castShadow; }
 
     public boolean isReflected() {
         return isReflected;
@@ -367,7 +368,7 @@ public abstract class AbstractGL3DObject extends SceneObjectsTreeItem implements
 
         param = program.paramByName(AMBIENT_RATE_PARAM_NAME);
         if (param != null && param.getParamReference() >= 0)
-            param.setValue(ambientRate);
+            param.setValue(GDXPreferences.INSTANCE.isIn_2D_Mode() ? ambientRate * 1.5f : ambientRate );
 
         param = program.paramByName(DIFFUSE_RATE_PARAM_NAME);
         if (param != null && param.getParamReference() >= 0)

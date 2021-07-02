@@ -64,6 +64,7 @@ public  class GLRenderConsts {
     public static final Map<Integer, GLParamType> GL_PARAM_TYPES = new HashMap<Integer, GLParamType>() {{
         put(GL20.GL_INT, GLParamType.INTEGER_UNIFORM_PARAM);
         put(GL20.GL_SAMPLER_2D, GLParamType.INTEGER_UNIFORM_PARAM);
+        put(GL20.GL_SAMPLER_2D_SHADOW, GLParamType.INTEGER_UNIFORM_PARAM);
         put(GL20.GL_FLOAT, GLParamType.FLOAT_UNIFORM_PARAM);
         put(GL20.GL_FLOAT_MAT4, GLParamType.FLOAT_UNIFORM_MATRIX_PARAM);
         put(GL20.GL_FLOAT_VEC3, GLParamType.FLOAT_UNIFORM_VECTOR_PARAM);

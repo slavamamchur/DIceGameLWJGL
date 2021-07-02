@@ -8,7 +8,7 @@ uniform mat4 u_MV_MatrixF;
 
 uniform sampler2D u_TextureUnit;
 uniform sampler2D u_BlendingMapUnit;
-uniform sampler2D uShadowTexture;
+uniform sampler2DShadow uShadowTexture;
 uniform sampler2D u_BackgroundUnit;
 uniform sampler2D u_RoadUnit;
 uniform sampler2D u_TerrainAtlas;
@@ -40,7 +40,7 @@ varying vec3 tangent;
 vec3 nNormal;
 vec3 nLightvector;
 vec3 nLookvector;
-highp vec4 shadowMapPosition;
+vec3 shadowMapPosition;
 highp float bias;
 
 const float nmapTiling = 12.0;
@@ -81,16 +81,15 @@ vec3 calcNormal(vec2 uv, mat3 tangentSpace, sampler2D normalMap, int page) {
     return result;
 }
 
-/*highp float calcDynamicBias(highp float bias, vec3 normal) {
-    highp float result;
-    highp vec3 nLightPos = normalize(u_lightPositionF);
-    highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
-    result = bias * tan(acos(cosTheta));
+/* float calcShadowRate(vec4 coords) {
+    vec4	vsm  = textureProj(uShadowTexture, coords);
+    float	mu   = vsm.r;
+    float	s2   = vsm.g - mu * mu;
+    float   d = coords.z - mu;
+    float	pmax = s2 / (s2 + d * d );
 
-    return clamp(result, 0.0, 0.3);
-}*/
-
-float calcShadowRate(vec2 coords) { return step(shadowMapPosition.z + bias, texture2D(uShadowTexture, coords).r); }
+    return min(max(pmax, float(d <= 0.0)), 1.0); //step(shadowMapPosition.z + bias, textureProj(uShadowTexture, coords).r);
+}
 
 float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
     vec2 pixelPos = coords / texelSize + vec2(0.5);
@@ -106,24 +105,21 @@ float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
     float mixB = mix(brTexel, trTexel, fracPart.y);
 
     return mix(mixA, mixB, fracPart.x);
-}
+} */
 
-float shadowPCF(vec2 coords, vec2 texelSize) {
-    const int ROW_CNT = 4;
+float shadowPCF(vec3 coords, vec2 texelSize) {
+    const int ROW_CNT = 3;
     const float CNT = (ROW_CNT - 1.0) * 0.5;
     const int SQUARE_CNT = ROW_CNT * ROW_CNT;
-    const float DIV_BY = 1.0 / SQUARE_CNT;
 
     float shadow = 1.0;
-
     for (float y = -CNT; y <= CNT; y = y + 1.0) {
         for (float x = -CNT; x <= CNT; x = x + 1.0) {
-            vec2 offset = vec2(x, y) * texelSize;
-            shadow += sampleShadowMapLinear(coords + offset, texelSize);
+            shadow += texture(uShadowTexture, coords + vec3(vec2(x, y) * texelSize, 0.0)); //sampleShadowMapLinear(coords + vec2(x, y) * texelSize, texelSize);
         }
     }
 
-    shadow *= DIV_BY;
+    shadow /= SQUARE_CNT;
     shadow += 0.2;
 
     return shadow;
@@ -214,16 +210,15 @@ void main()
 
       }
 
-      highp float shadowRate = 1.0;
-      if (vShadowCoord.w > 0.0) {
-          bias = 0.005; // between 0.00005; //todo: calcDynamicBias(0.005, nNormal); but as in youtube example !!!
-          shadowMapPosition = vShadowCoord; /*todo: / vShadowCoord.w - > for spot lights only (low priority) */;
-          if (shadowMapPosition.z > 1.0)
-            shadowMapPosition.z = 1.0;
+      //highp float shadowRate = 1.0;
+      //if (vShadowCoord.w > 0.0) { //for spot lights
+          //bias = max(0.005 * (1.0 - dot(nLightvector, nNormal)), 0.00005);
+          shadowMapPosition = vShadowCoord.xyz;
+          shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
 
-          shadowRate = shadowPCF(shadowMapPosition.xy, vec2(uxPixelOffset, uyPixelOffset));
+          float shadowRate = shadowPCF(shadowMapPosition, vec2(uxPixelOffset, uyPixelOffset)); //calcShadowRate(shadowMapPosition);
           shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
-      }
+      //}
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
 

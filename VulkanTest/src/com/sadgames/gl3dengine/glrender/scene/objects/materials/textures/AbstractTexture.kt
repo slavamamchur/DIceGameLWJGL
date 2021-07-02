@@ -53,7 +53,7 @@ abstract class AbstractTexture(width: Int,
         if (textureParams.filterMode.isMipMap) {
             val max = FloatArray(16)
             glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, max)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max[0].coerceAtMost(16f)) //todo: use quality settings
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max[0].coerceAtMost(16f))
         }
     }
 
@@ -64,7 +64,7 @@ abstract class AbstractTexture(width: Int,
         if (textureIds[0] != 0) {
             /*if (this is CubeMapTexture)
                 glBindTextureCube(textureIds[0])
-            else*/ glBindTexture(GL_TEXTURE_2D, textureIds[0])
+            else*/ glBindTexture(textureType, textureIds[0])
 
             setTextureParams()
 
@@ -79,7 +79,7 @@ abstract class AbstractTexture(width: Int,
         textureData = bitmap
     }
 
-    @JvmOverloads fun bind(glTextureSlot: Int = 0): Int {
+    @JvmOverloads open fun bind(glTextureSlot: Int = 0): Int {
         return  if (textureId <= 0)
                     -1
                 else {

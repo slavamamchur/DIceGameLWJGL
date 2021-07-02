@@ -12,7 +12,8 @@ abstract class AbstractFBO(var width: Int,
                            private val clearColor: Color4f,
                            protected var hasAdditionalTextures: Boolean = false,
                            attachmentsCnt: Int = 1,
-                           protected val isMultiSampled: Boolean = false) {
+                           protected val isMultiSampled: Boolean = false,
+                           protected val isFloat32: Boolean = false) {
 
     private val fboID: Int = glGenFramebuffers()
 
@@ -28,6 +29,9 @@ abstract class AbstractFBO(var width: Int,
 
         for (i in (0 until attachmentsCnt))
             colorAttachments += attachTexture(i)
+
+        //val error = GL11.glGetError()
+        //println(error)
 
         val status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (status != GL_FRAMEBUFFER_COMPLETE) {

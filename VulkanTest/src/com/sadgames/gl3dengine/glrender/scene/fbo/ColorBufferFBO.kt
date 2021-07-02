@@ -4,11 +4,15 @@ import com.sadgames.gl3dengine.glrender.GLRenderConsts.FBO_TEXTURE_SLOT
 import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.AbstractTexture
 import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.DepthTexture
 import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.RGBATexture
+import com.sadgames.gl3dengine.glrender.scene.objects.materials.textures.RGBFTexture
 import org.lwjgl.opengl.GL30.*
 import javax.vecmath.Color4f
 
-class ColorBufferFBO @JvmOverloads constructor(width: Int, height: Int, clearColor: Color4f, hasDepthTexture: Boolean = false, attachmentsCnt: Int = 1, isMultiSampled: Boolean = false):
-        AbstractFBO(width, height, clearColor, hasDepthTexture, attachmentsCnt, isMultiSampled) {
+open class ColorBufferFBO
+    @JvmOverloads
+    constructor(width: Int, height: Int, clearColor: Color4f, hasDepthTexture: Boolean = false, attachmentsCnt: Int = 1, isMultiSampled: Boolean = false, isFloat32: Boolean = false):
+                AbstractFBO(width, height, clearColor, hasDepthTexture, attachmentsCnt, isMultiSampled, isFloat32) {
+
     private lateinit var depthBuffer: IntArray
     lateinit var depthTexture: AbstractTexture; private set
 
@@ -20,15 +24,20 @@ class ColorBufferFBO @JvmOverloads constructor(width: Int, height: Int, clearCol
                 depthBuffer = IntArray(1)
                 glGenRenderbuffers(depthBuffer)
                 glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer[0])
-                if (!isMultiSampled)
+                if (!isMultiSampled /*&& !isFloat32*/)
                     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height)
                 else
                     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT16, width, height)
+
                 glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer[0])
             }
 
-        return if (!isMultiSampled)
-                    RGBATexture(width, height, num)(FBO_TEXTURE_SLOT + num, true)
+        return if (!isMultiSampled) {
+                    (if (!isFloat32)
+                        RGBATexture(width, height, num)
+                    else
+                        RGBFTexture(width, height, num, true)) (FBO_TEXTURE_SLOT + num, true)
+               }
                else {
                     val colorBuffer = IntArray(1)
                     glGenRenderbuffers(colorBuffer)
