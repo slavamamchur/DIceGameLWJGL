@@ -12,7 +12,8 @@ abstract class AbstractTexture(width: Int,
                                height: Int,
                                bitmap: BitmapWrapper?,
                                textureName: String?,
-                               protected var textureParams: TextureParams): CachedEntity {
+                               protected var textureParams: TextureParams,
+                               protected val isMultiSampled: Boolean = false): CachedEntity {
     companion object {
         private const val GL_EXT_TEXTURE_FILTER_ANISOTROPIC = "GL_EXT_texture_filter_anisotropic"
         val GLOBAL_USE_MIP_MAP = true
@@ -20,7 +21,7 @@ abstract class AbstractTexture(width: Int,
 
     var width = width; private set
     var height = height; private set
-    var textureId = 0; private set
+    var textureId = 0
     var textureSize: Long = bitmap?.imageSizeBytes?.toLong() ?: 0.toLong(); protected set
     var textureName: String? = textureName; protected set
 
@@ -88,7 +89,7 @@ abstract class AbstractTexture(width: Int,
                     /*if (this is CubeMapTexture)
                         glBindTextureCube(textureId)
                     else*/
-                        glBindTexture(GL_TEXTURE_2D, textureId)
+                        glBindTexture(textureType, textureId)
 
                     glTextureSlot
                 }

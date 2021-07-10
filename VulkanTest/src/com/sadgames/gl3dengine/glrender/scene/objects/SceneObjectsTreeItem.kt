@@ -61,7 +61,7 @@ abstract class SceneObjectsTreeItem
     }
 
     //todo: change to func ref???
-    fun proceesTreeItems(itemHandler: (item: SceneObjectsTreeItem?) -> Void?, condition: (item: SceneObjectsTreeItem?) -> Boolean) {
+    fun proceesTreeItems(itemHandler: (item: SceneObjectsTreeItem?) -> Unit, condition: (item: SceneObjectsTreeItem?) -> Boolean) {
         if (isVisible) {
             val sortedItems = ArrayList(childs.values)
             sortedItems.sortWith(Comparator

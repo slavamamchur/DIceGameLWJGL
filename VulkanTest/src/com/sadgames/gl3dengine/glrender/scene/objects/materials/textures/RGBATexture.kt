@@ -3,7 +3,7 @@ package com.sadgames.gl3dengine.glrender.scene.objects.materials.textures
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL32.glFramebufferTexture
 
-open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int = 0): AbstractFBOTexture(width, height) {
+open class RGBATexture(width: Int, height: Int, private val attachmentNum: Int = 0, isMultiSampled: Boolean = false): AbstractFBOTexture(width, height, isMultiSampled) {
 
     @Throws(UnsupportedOperationException::class) override fun loadTexture(bitmap: BitmapWrapper?) {
         glTexImage2D(textureType,

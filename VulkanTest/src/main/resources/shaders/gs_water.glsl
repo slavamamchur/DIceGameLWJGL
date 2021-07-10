@@ -47,10 +47,9 @@ void calculateTangent() {
 
 void calcVariances(int i) {
     wPosition = gl_in[i].gl_Position.xyz;
-    vec3 v_Position = vec4(u_MV_Matrix * gl_in[i].gl_Position).xyz;
 
-    lightvector = (u_lightPosition - v_Position);
-    lookvector = (u_camera -v_Position);
+    lightvector = (/*wPosition - */u_lightPosition);
+    lookvector = (u_camera - wPosition);
 
     vShadowCoord = uShadowProjMatrix * clipSpaceGrid0[i];
 

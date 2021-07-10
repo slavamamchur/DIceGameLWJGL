@@ -32,7 +32,6 @@ class MyGestureListener(private val renderer: GLRendererInterface<SceneObjectsTr
             camera?.rotateX(-dY * TOUCH_SCALE_FACTOR / 2)
             camera?.rotateY(dX * TOUCH_SCALE_FACTOR * 2)
             camera?.updateViewMatrix()
-            renderer.lightSource?.updateLightPosInEyeSpace()
         }
     }
 
@@ -43,7 +42,7 @@ class MyGestureListener(private val renderer: GLRendererInterface<SceneObjectsTr
         mScaleFactor = distance;
 
         if (oldScaleFactor != mScaleFactor) {
-            renderer.camera?.vfov = (DEFAULT_CAMERA_VERTICAL_FOV / mScaleFactor);
+            renderer.camera?.vFov = (DEFAULT_CAMERA_VERTICAL_FOV / mScaleFactor);
             //requestRender();
         }
     }

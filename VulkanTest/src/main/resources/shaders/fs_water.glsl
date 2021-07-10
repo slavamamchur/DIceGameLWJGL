@@ -41,33 +41,17 @@ const float nmapTiling = 6.0;
 const float waveStrength = 0.02;
 const vec2 center = vec2(0.0, 0.0);
 
-/*highp float calcDynamicBias(highp float bias, vec3 normal) {
-    highp float result;
-    highp vec3 nLightPos = normalize(u_lightPositionF);
-    highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
-    result = bias * tan(acos(cosTheta));
+//vec3 texelSize = vec3(uxPixelOffset, uyPixelOffset, 0);
 
-    return clamp(result, 0.0, 0.3);
-}*/
-
-float calcShadowRate(vec3 coord, vec2 offSet) {
-    return texture(uShadowTexture, (coord + vec3(offSet * vec2(uxPixelOffset, uyPixelOffset), 0.0)));
-}
-
-float shadowPCF(vec3 coord, float n) {
-	float shadow = 1.0;
-
-	float cnt = (n - 1.0) * 0.5;
-	for (float y = -cnt; y <= cnt; y = y + 1.0) {
-		for (float x = -cnt; x <= cnt; x = x + 1.0) {
-			shadow += calcShadowRate(coord, vec2(x,y));
-		}
-	}
-
-	shadow /= (n * n);
-	shadow += 0.2;
-
-	return shadow;
+float shadowPCF(vec3 coord) {
+    //Universal
+	/*return dot(vec4(texture(uShadowTexture, coord + vec3(-1.0,    0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3(   0, -1.0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3( 1.0,    0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3(   0,  1.0, 0) * texelSize)), vec4(0.25));*/
+    //ATI hardware
+    const ivec2 offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
+    return dot(textureGatherOffsets(uShadowTexture, coord.xy, coord.z, offsets), vec4(0.25));
 }
 
 vec4 calcLightColor(vec3 nNormal, vec3 nLightvector, float shadowRate) {
@@ -78,9 +62,9 @@ vec4 calcLightColor(vec3 nNormal, vec3 nLightvector, float shadowRate) {
       return vec4(lightColour * shadowRate, 1.0);
 }
 
-vec4 calcSpecularColor(vec3 nNormal, vec3 nLightvector, vec3 n_lookvector, float shadowRate) {
-    vec3 reflectvector = reflect(-nLightvector, nNormal);
-    float specular = u_SpecularRate * pow(max(dot(reflectvector, n_lookvector), 0.0), shineDumper);
+vec4 calcSpecularColor(vec3 nNormal, vec3 nLightvector, vec3 n_lookvector, float shadowRate) { //todo: convert light & look to tangent space
+    vec3 reflectvector = normalize(nLightvector + n_lookvector); //reflect(-nLightvector, nNormal);
+    float specular = u_SpecularRate * pow(max(dot(reflectvector, nNormal), 0.0), shineDumper);
 
     if (shadowRate < 1.0) {
       specular = 0.0;
@@ -98,10 +82,6 @@ vec4 calcPhongLightingMolel(vec3 n_normal, vec3 n_lightvector, vec3 n_lookvector
 
 float getNormalizedDistance(float near, float far, float depth) {
     return  2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));
-}
-
-vec4 textureFromAtlas(sampler2D atlas, vec2 uv, float page) {
-    return texture2D(atlas, vec2(clamp(uv.x + 0.25 * page, 0.25 * page, 0.25 * (page + 1.0)), uv.y));
 }
 
 float smoothlyStep(float edge0, float edge1, float x){
@@ -146,7 +126,7 @@ void main()
           vec2 ndc = clipSpace2NDC(clipSpace);
 
           float waterDepth = getNormalizedDistance(0.01, 100.0, texture2D(depthMap, ndc).r) - getNormalizedDistance(0.01, 100.0,  gl_FragCoord.z);
-          float depthFactor = clamp(waterDepth, 0.0, 1.0); //todo: increase value because near side too small
+          float depthFactor = clamp(waterDepth, 0.0, 1.0);
 
           uv = texture2D(u_DUDVMapUnit, vec2(tc.x + u_RndSeed, tc.y)).rg * 0.1;
           uv = tc + vec2(uv.x, uv.y + u_RndSeed);
@@ -156,17 +136,15 @@ void main()
           totalDistortion = (texture2D(u_DUDVMapUnit, uv).rg * 2.0 - 1.0) * waveStrength;
 
           float reflectiveFactor = 1.0 - clamp(dot(n_lookvector, vec3(0.0, 1.0, 0.0)), 0.0, 1.0);
-          //reflectiveFactor = clamp(pow(reflectiveFactor, 0.6), 0.0, 1.0);
-          //reflectiveFactor = 1.0 - reflectiveFactor;
           vec4 refractionColor;
 
           if (u_hasReflectMap == 1) {
             ndc = clipSpace2NDC(clipSpaceGrid);
             vec4 reflectionColor = texture2D(u_ReflectionMapUnit, clamp(vec2(ndc.x, 1.0 - ndc.y) + totalDistortion, 0.001, 0.9999));
+            reflectionColor = mix(reflectionColor, waterColour, 0.4);
             refractionColor = texture2D(u_RefractionMapUnit, clamp(ndc + totalDistortion, 0.001, 0.9999));
             refractionColor = mix(refractionColor, waterColour, depthFactor * 0.75);
             diffuseColor = mix(refractionColor, reflectionColor, reflectiveFactor);
-            diffuseColor = mix(diffuseColor, waterColour, 0.4);
           }
           else {
             refractionColor = texture2D(u_RefractionMapUnit, clamp(tc * 4.0 + totalDistortion, 0.0, 0.9999));
@@ -174,10 +152,7 @@ void main()
           }
 
     //Shadows:
-    vec3 shadowMapPosition = vShadowCoord.xyz;
-    shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
-    float shadowRate = shadowPCF(shadowMapPosition, 3.0);
-    shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
+    float shadowRate = (shadowPCF(vec3(vShadowCoord.xy, min(vShadowCoord.z, 1.0))) * (1.0 - u_AmbientRate)) + u_AmbientRate;
 
     //breethe:
     float alpha = clamp(depthFactor * 32.0, 0.0, 1.0);

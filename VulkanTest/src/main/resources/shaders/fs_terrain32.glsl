@@ -40,7 +40,6 @@ varying vec3 tangent;
 vec3 nNormal;
 vec3 nLightvector;
 vec3 nLookvector;
-vec3 shadowMapPosition;
 highp float bias;
 
 const float nmapTiling = 12.0;
@@ -81,48 +80,36 @@ vec3 calcNormal(vec2 uv, mat3 tangentSpace, sampler2D normalMap, int page) {
     return result;
 }
 
-/* float calcShadowRate(vec4 coords) {
-    vec4	vsm  = textureProj(uShadowTexture, coords);
+highp float calcDynamicBias(highp float bias, vec3 normal) {
+    highp float result;
+    highp vec3 nLightPos = normalize(u_lightPositionF);
+    highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
+    result = bias * tan(acos(cosTheta));
+
+    return clamp(result, 0.0, 0.3);
+}
+
+/* float calcShadowRate(vec3 coords) {
+    vec4	vsm  = texture(uShadowTexture, coords.xy);
     float	mu   = vsm.r;
     float	s2   = vsm.g - mu * mu;
     float   d = coords.z - mu;
     float	pmax = s2 / (s2 + d * d );
 
     return min(max(pmax, float(d <= 0.0)), 1.0); //step(shadowMapPosition.z + bias, textureProj(uShadowTexture, coords).r);
-}
-
-float sampleShadowMapLinear(vec2 coords, vec2 texelSize) {
-    vec2 pixelPos = coords / texelSize + vec2(0.5);
-    vec2 fracPart = fract(pixelPos);
-    vec2 startTexel = (pixelPos - fracPart) * texelSize;
-
-    float blTexel = calcShadowRate(startTexel);
-    float brTexel = calcShadowRate(startTexel + vec2(texelSize.x, 0.0));
-    float tlTexel = calcShadowRate(startTexel + vec2(0.0, texelSize.y));
-    float trTexel = calcShadowRate(startTexel + texelSize);
-
-    float mixA = mix(blTexel, tlTexel, fracPart.y);
-    float mixB = mix(brTexel, trTexel, fracPart.y);
-
-    return mix(mixA, mixB, fracPart.x);
 } */
 
-float shadowPCF(vec3 coords, vec2 texelSize) {
-    const int ROW_CNT = 3;
-    const float CNT = (ROW_CNT - 1.0) * 0.5;
-    const int SQUARE_CNT = ROW_CNT * ROW_CNT;
+//vec3 texelSize = vec3(uxPixelOffset, uyPixelOffset, 0);
 
-    float shadow = 1.0;
-    for (float y = -CNT; y <= CNT; y = y + 1.0) {
-        for (float x = -CNT; x <= CNT; x = x + 1.0) {
-            shadow += texture(uShadowTexture, coords + vec3(vec2(x, y) * texelSize, 0.0)); //sampleShadowMapLinear(coords + vec2(x, y) * texelSize, texelSize);
-        }
-    }
-
-    shadow /= SQUARE_CNT;
-    shadow += 0.2;
-
-    return shadow;
+float shadowPCF(vec3 coord) {
+    //Universal
+    /*return dot(vec4(texture(uShadowTexture, coord + vec3(-1.0,    0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3(   0, -1.0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3( 1.0,    0, 0) * texelSize),
+                    texture(uShadowTexture, coord + vec3(   0,  1.0, 0) * texelSize)), vec4(0.25));*/
+    //ATI hardware
+    const ivec2 offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
+    return dot(textureGatherOffsets(uShadowTexture, coord.xy, coord.z, offsets), vec4(0.25));
 }
 
 vec4 calcLightColor(float shadowRate) {
@@ -210,28 +197,20 @@ void main()
 
       }
 
-      //highp float shadowRate = 1.0;
-      //if (vShadowCoord.w > 0.0) { //for spot lights
-          //bias = max(0.005 * (1.0 - dot(nLightvector, nNormal)), 0.00005);
-          shadowMapPosition = vShadowCoord.xyz;
-          shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
-
-          float shadowRate = shadowPCF(shadowMapPosition, vec2(uxPixelOffset, uyPixelOffset)); //calcShadowRate(shadowMapPosition);
-          shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
-      //}
+     //highp float bias = /*(u_is2DModeF == 1) ? calcDynamicBias(0.0005, nNormal) :*/ 0.0;
+      float shadowRate = shadowPCF(vec3(vShadowCoord.xy, min(vShadowCoord.z/* + bias*/ , 1.0))) * (1.0 - u_AmbientRate) + u_AmbientRate;
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
-
       if (u_is2DModeF != 1) {
         fragColor = mix(vec4(u_lightColour, 1.0), fragColor, visibility);
       }
 
-      float blur = clamp(abs(focalDistance  + v_Position.z) * focalRange, 0.0, 1.0);
+      float blur = clamp(abs(focalDistance  + v_Position.z) * focalRange, 0.0, 1.0); //todo: ???
       colorBuffer = vec4(fragColor.rgb, 1.0);
 
       float brightness = fragColor.r * 0.2126 + fragColor.g * 0.7152 + fragColor.b * 0.0722;
       if (brightness > 0.7 && wPosition.y > 0.0 && visibility >= 0.9) {
-            lightBuffer = fragColor;
+            lightBuffer = fragColor * blur;
       }
       else {
             lightBuffer = vec4(0.0, 0.0, 0.0, 1.0);

@@ -23,8 +23,10 @@ class WaterRendererProgram : TerrainRendererProgram() {
         setMVMatrixData(scene.camera!!.viewMatrix)
         setMVPMatrixData(modelView.value)
 
-        params[LIGHT_MVP_MATRIX_PARAM_NAME]?.value =
-                (Mat4x4(BIAS) * Mat4x4(scene.lightSource!!.projectionMatrix) * Mat4x4(scene.lightSource!!.viewMatrix)).value
+        params[LIGHT_POSITION_PARAM_NAME]?.value = scene.lightSource!!.lightPosInModelSpace
+        params[LIGHT_POSITIONF_PARAM_NAME]?.value = scene.lightSource!!.lightPosInModelSpace
+
+        params[LIGHT_MVP_MATRIX_PARAM_NAME]?.value = (Mat4x4(BIAS) * Mat4x4(scene.lightSource!!.projectionMatrix) * Mat4x4(scene.lightSource!!.viewMatrix)).value
 
         time = (time + scene.frameTime * WAVE_SPEED) % 1
         params[TIME_PARAM_NAME]?.value = time

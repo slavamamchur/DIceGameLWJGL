@@ -5,17 +5,17 @@ import com.sadgames.sysutils.common.MathUtils.orthoM
 import javax.vecmath.Vector3f
 
 class Orthogonal2DCamera(private val landSize: Float):
-        GLCamera(0f, landSize / 2f, 0f, 90f, 0f, 0f) {
+        GLCamera(0f, -landSize / 2f, 0f, 90f, 0f, 0f) {
 
     private var scaleFactor: Float = 1.0f
 
     init {
-        vfov = 90f
-        zoomed_vfov = 90f
+        vFov = 90f
+        zoomedVFov = 90f
     }
 
-    override fun setVfovInternal() {
-        scaleFactor = vfov / 90f
+    override fun setVFovInternal() {
+        scaleFactor = vFov / 90f
         updateProjectionMatrix()
     }
 
@@ -27,7 +27,7 @@ class Orthogonal2DCamera(private val landSize: Float):
         val top = -bottom
 
         Mat4x4(projectionMatrix)()
-        orthoM(projectionMatrix, 0, left, right, bottom, top, NEAR_PLANE, FAR_PLANE)
+        orthoM(projectionMatrix, 0, left, right, bottom, top, -FAR_PLANE, FAR_PLANE)
 
         projectionMatrix = projectionMatrix
     }

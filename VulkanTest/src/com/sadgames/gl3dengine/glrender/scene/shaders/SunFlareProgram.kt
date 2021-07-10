@@ -11,6 +11,7 @@ import com.sadgames.sysutils.common.toArray
 class SunFlareProgram: GUIRendererProgram() {
 
     override fun getFragmentShaderResId() = FLARE_FRAGMENT_SHADER
+    override fun getGeometryShaderResId(): String? = null
 
     override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
         val sun = scene.scene.getChild(GameConst.SUN_OBJECT) as SunObject

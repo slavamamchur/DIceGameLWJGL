@@ -37,7 +37,7 @@ class RGBFTexture(width: Int, height: Int, attachmentNum: Int = 0, useMipmap: Bo
         }
     }*/
 
-    //todo: use variance shadow map (because witout bias) filtered by gaussian blur ??? or hardware anisitropic mimmap
+    //todo: use variance shadow map filtered by gaussian blur ??? or hardware anisitropic mimmap
     override fun setTextureParams() {
         textureParams.filterMode = TextureParams.TextureFilter.Linear
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureParams.filterMode.gLEnum)

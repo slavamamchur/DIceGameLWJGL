@@ -10,6 +10,7 @@ open class GUIRendererProgram : ShadowMapProgram() {
 
     override fun getVertexShaderResId() = GUI_VERTEX_SHADER
     override fun getFragmentShaderResId() = GUI_FRAGMENT_SHADER
+    override fun getGeometryShaderResId(): String? = null
 
     override fun bindAdditionalParams(scene: GLRendererInterface<SceneObjectsTreeItem>, renderable: AbstractGL3DObject) {
         super.bindAdditionalParams(scene, renderable)

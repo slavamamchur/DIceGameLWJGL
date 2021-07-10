@@ -45,7 +45,7 @@ object DesktopLauncher {
             visible = false
             //resizable = true
 
-            context.version = if (Platform.get() == Platform.MACOSX) "3.2" else "4.1"
+            context.version = if (Platform.get() == Platform.MACOSX) "3.2" else "4.2"
             profile = core
 
             samples = if (GDXPreferences.graphicsQualityLevel == GraphicsQuality.ULTRA) 8 else 0

@@ -41,7 +41,7 @@ void main()
     vec3 v_Position = (u_MV_Matrix * updatedPos).xyz;
 
     //Guard shading model --------------------------------------------------------------------------
-    vec3 lightvector = u_lightPosition - v_Position;
+    vec3 lightvector = u_lightPosition/* - v_Position*/; //todo: ???
     vec3 lookvector = /*u_camera*/ -v_Position;
 
     n_normal = normalize(v_Normal);

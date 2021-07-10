@@ -45,7 +45,7 @@ const val COLOR_BUFFER = 0;
 const val LIGHT_MAP = 1;
 const val RAYS_MAP = 2;
 
-open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
+class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterface?): SceneObjectsTreeItem(), GLRendererInterface<SceneObjectsTreeItem> {
 
     private var savedCamera: GLCamera? = null
     private var firstRun = true
@@ -57,7 +57,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     private var isRenderStopped = false
     private var prevObject: AbstractGL3DObject? = null
     private var old2dModeValue = false
-    private val isClippingPlanesSupported by lazy{glExtensions.contains("_cull_distance")}
+    private val isClippingPlanesSupported by lazy { glExtensions.contains(GL_EXT_CLIP_CULL_DISTANCE) }
 
     override var moveFactor = 0f
     override var frameTime: Long = 0
@@ -65,7 +65,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     override var shadowMapFBO: AbstractFBO? = null
     override var refractionMapFBO: AbstractFBO? = null
     override var program: VBOShaderProgram? = null
-    override var lightSource: GLLightSource? = null;
+    override var lightSource: GLLightSource? = null
     override val scene: GLScene get() = this
     override var luaEngine: Globals? = null
     override var glExtensions = ""
@@ -79,6 +79,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             if (field!!.aspectRatio == -1f) field!!.aspectRatio = mDisplayWidth * 1f / mDisplayHeight
 
             lightSource?.mCamera = field!!
+            field?.updateViewMatrix()
         }
 
     override lateinit var ctx: Context
@@ -90,13 +91,14 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
     var mDisplayHeight = 0; private set
     var isSceneLoaded = false; set(value) { synchronized(lockObject) { field = value } }
     lateinit var mainRenderFBO: AbstractFBO; private set
-    lateinit var transiteFBO: AbstractFBO; private set
-    var transiteFBO2: AbstractFBO? = null; private set
-    var hBlurFBO: AbstractFBO? = null; private set
+    private lateinit var transitFBO: AbstractFBO
+    //var transiteFBO2: AbstractFBO? = null; private set
+    private lateinit var hBlurFBO: AbstractFBO
     var reflectionMapFBO: AbstractFBO? = null; private set
-    var raysMapFBO: AbstractFBO? = null; private set
+    //var raysMapFBO: AbstractFBO? = null; private set
     var raysEffectFBO: AbstractFBO? = null; private set
-    var hasDepthTextureExtension = checkDepthTextureExtension(); private set
+    val hasDepthTextureExtension by lazy { glExtensions.contains(UNI_DEPTH_TEXTURE_EXTENSION) }
+
     override var zoomCameraAnimation: GLAnimation? = null
 
     private fun initScene() {
@@ -105,14 +107,13 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                                     DEFAULT_LIGHT_COLOUR,
                                     camera!!)
         gameEventsCallBackListener?.onInitGLCamera(camera)
-        camera?.updateViewMatrix()
+        camera!!.updateViewMatrix()
         gameEventsCallBackListener?.onInitLightSource(lightSource)
     }
 
     private fun scenePrepare() {
-        glEnable(GL_MULTISAMPLE);
+        glEnable(GL_MULTISAMPLE)
         glExtensions = extractGlExtensions(extractVersion())
-        hasDepthTextureExtension = checkDepthTextureExtension()
 
         glEnable(GL20.GL_CULL_FACE)
 
@@ -175,7 +176,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         val shadowMapHeight = (mDisplayHeight * shadowMapResolutionScaleFactor).roundToInt()
 
         lightSource!!.updateViewProjectionMatrix(shadowMapWidth, shadowMapHeight)
-        shadowMapFBO = DepthBufferFBO(shadowMapWidth, shadowMapHeight) //ColorBufferFBO(shadowMapWidth, shadowMapHeight, DEPTH_BUFFER_CLEAR_COLOR, isFloat32 = true) //todo: check textureProj on DepthTexture
+        shadowMapFBO = DepthBufferFBO(shadowMapWidth, shadowMapHeight/*, isMultiSampled = true*/) //ColorBufferFBO(shadowMapWidth, shadowMapHeight, DEPTH_BUFFER_CLEAR_COLOR, isFloat32 = true)
     }
 
     private fun generateMainRenderFBO() {
@@ -184,12 +185,12 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                 Color4f(0.0f, 0.0f, 0.0f, 0.0f),
                 false,  3,
                 true)
-            transiteFBO = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
+            transitFBO = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
                     Color4f(0.0f, 0.7f, 1.0f, 1.0f),
                     false)
-            transiteFBO2 = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
+            /*transiteFBO2 = ColorBufferFBO(mDisplayWidth, mDisplayHeight,
                     Color4f(0.0f, 0.7f, 1.0f, 1.0f),
-                    false)
+                    false)*/
             hBlurFBO = ColorBufferFBO(mDisplayWidth / 4, mDisplayHeight / 4,
                     Color4f(0.0f, 0.0f, 0.0f, 0.0f),
                     false)
@@ -206,9 +207,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
                 2)
     }
 
-    private fun generateRaysMapFBO() {
+    /*private fun generateRaysMapFBO() {
         raysMapFBO = null
-    }
+    }*/
 
     private fun generateRaysEffectFBO() {
         raysEffectFBO = ColorBufferFBO((mDisplayWidth * 0.25f).roundToInt(),
@@ -232,8 +233,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             camera!!.aspectRatio = mDisplayWidth * 1f / mDisplayHeight
 
             if (settingsManager.isIn_2D_Mode) {
-                camera!!.vfov = camera!!.vfov / 1.5f
-                camera!!.zoomed_vfov = camera!!.vfov
+                camera!!.vFov = camera!!.vFov / 1.5f
+                camera!!.zoomedVFov = camera!!.vFov
             }
 
             generateShadowMapFBO()
@@ -241,9 +242,10 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             //todo: Implement deferred lighting algorithm
 
             generateReflectionMapFBO()
-            generateRaysMapFBO()
-            generateRaysEffectFBO()
+
             /** for post effects  */
+            //generateRaysMapFBO()
+            generateRaysEffectFBO()
             generateMainRenderFBO()
         }
         else {
@@ -252,27 +254,20 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
     }
 
-    private fun simulatePhysics() {
-        if (isSimulating)
-            simulatePhysicsTimeStep(frameTime / 1000f)
-    }
+    private fun simulatePhysics() { if (isSimulating) simulatePhysicsTimeStep(frameTime / 1000f) }
 
     private fun calculateCameraPosition() {
         if (zoomCameraAnimation?.isInProgress == true) {
-            zoomCameraAnimation!!.animate(camera)
+            zoomCameraAnimation?.animate(camera)
         }
     }
 
     private fun calculateWavesMovingFactor() {
-        try {
             moveFactor += WAVE_SPEED * frameTime / 1000
-            moveFactor %= 1f
-        } catch (e: Exception) {
-            moveFactor = 0f
-        }
+            moveFactor = if (moveFactor == Float.MAX_VALUE) 0f else moveFactor % 1f
     }
 
-    private fun calculateObjectsAnimations(sceneObject: SceneObjectsTreeItem?): Void? {
+    private fun calculateObjectsAnimations(sceneObject: SceneObjectsTreeItem?) {
         val gl3DObject = sceneObject as AbstractGL3DObject
 
         if (gl3DObject.animation?.isInProgress == true)
@@ -280,8 +275,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         else
             if (isSimulating && gl3DObject is PNodeObject && gl3DObject.tag == PNodeObject.MOVING_OBJECT && gl3DObject._body != null)
                 gl3DObject.setWorldTransformMatrix(gl3DObject.worldTransformActual)
-
-        return null
     }
 
     private fun calculateSceneTransformations() {
@@ -289,6 +282,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         calculateWavesMovingFactor()
 
         proceesTreeItems({calculateObjectsAnimations(it)}) {true}
+
+        lightSource!!.updateLightPosInEyeSpace()
     }
 
     private fun clearRenderBuffers() {
@@ -299,7 +294,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
     private fun renderItems(fbo: AbstractFBO?,
                             renderProgram: VBOShaderProgram?,
-                            itemHandler: (item: SceneObjectsTreeItem?) -> Void?,
+                            itemHandler: (item: SceneObjectsTreeItem?) -> Unit,
                             condition: (item: SceneObjectsTreeItem?) -> Boolean) {
         if (fbo != null)
             fbo.bind()
@@ -346,7 +341,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
     }
 
-    private fun drawObjectIntoRaysMap(sceneObject: SceneObjectsTreeItem): Void? {
+    private fun drawObjectIntoRaysMap(sceneObject: SceneObjectsTreeItem) {
         val gl3DObject = sceneObject as AbstractGL3DObject
         program!!.bindLocals(this, gl3DObject, false, true)
 
@@ -356,10 +351,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         gl3DObject.render()
-        return null
     }
 
-    private fun drawObjectIntoRefractionMap(sceneObject: SceneObjectsTreeItem): Void? {
+    private fun drawObjectIntoRefractionMap(sceneObject: SceneObjectsTreeItem) {
         val gl3DObject = sceneObject as AbstractGL3DObject
         val tmpTex = gl3DObject.glTexture
         gl3DObject.glTexture = TextureCache.getItem(GameConst.SAND_TEXTURE_NAME)
@@ -373,10 +367,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         gl3DObject.render()
         gl3DObject.glTexture = tmpTex
-        return null
     }
 
-    private fun drawObjectIntoReflectionMap(sceneObject: SceneObjectsTreeItem, uniqProg: VBOShaderProgram, stdProg: VBOShaderProgram): Void? {
+    private fun drawObjectIntoReflectionMap(sceneObject: SceneObjectsTreeItem, uniqProg: VBOShaderProgram, stdProg: VBOShaderProgram) {
         val gl3DObject = sceneObject as AbstractGL3DObject
         val currentProg = if (gl3DObject.program === uniqProg) uniqProg else stdProg
 
@@ -386,7 +379,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         if (program == null)
-            return null
+            return
 
         program!!.bindLocals(this, gl3DObject, false, true)
 
@@ -396,10 +389,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         gl3DObject.render()
-        return null
     }
 
-    private fun drawObjectIntoShadowMap(sceneObject: SceneObjectsTreeItem?): Void? {
+    private fun drawObjectIntoShadowMap(sceneObject: SceneObjectsTreeItem?) {
         program!!.bindLocals(this, sceneObject as AbstractGL3DObject, true, false)
 
         if (sceneObject != prevObject) {
@@ -408,10 +400,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         sceneObject.render()
-        return null
     }
 
-    private fun drawObjectIntoColorBuffer(sceneObject: SceneObjectsTreeItem?): Void? {
+    private fun drawObjectIntoColorBuffer(sceneObject: SceneObjectsTreeItem?) {
         val gl3DObject = sceneObject as AbstractGL3DObject
         if (gl3DObject.program !== program) {
             program = gl3DObject.program
@@ -420,7 +411,7 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         }
 
         if (program == null)
-            return null
+            return
 
         program!!.bindLocals(this, gl3DObject, false, true)
         if (gl3DObject != prevObject) {
@@ -430,7 +421,6 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         gl3DObject.render()
         gl3DObject.unbindTexture(0)
-        return null
     }
 
     override fun switchTo2DMode() {
@@ -461,11 +451,13 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         /** Render ShadowMap  */
         glEnable(GL_POLYGON_OFFSET_FILL)
         glPolygonOffset(2.0f, 2.0f)
-        glCullFace(GL_FRONT)
+
+        glCullFace(/*if (settingsManager.isIn_2D_Mode) GL_BACK else*/ GL_FRONT)
         renderItems(shadowMapFBO,
                     getCachedShader(GLObjectType.SHADOW_MAP_OBJECT)!!, {drawObjectIntoShadowMap(it)},
                     {condition -> (condition as AbstractGL3DObject).isCastShadow})
         glDisable(GL_POLYGON_OFFSET_FILL)
+        glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
 
         glEnable(GL20.GL_BLEND)
@@ -511,8 +503,8 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
         /** for post effects image processing */
         if (!settingsManager.isIn_2D_Mode) {
-            mainRenderFBO(RAYS_MAP) blit transiteFBO
-            steps.add(PostProcessStep(transiteFBO.fboTexture!!,
+            mainRenderFBO(RAYS_MAP) blit transitFBO
+            steps.add(PostProcessStep(transitFBO.fboTexture!!,
                              null,
                                       GameConst.GOD_RAYS_POST_EFFECT,
                                       object : HashMap<String, Any>() {
@@ -524,9 +516,9 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
 
             renderPostEffectsBuffer(raysEffectFBO, steps)
 
-            mainRenderFBO(LIGHT_MAP) blit transiteFBO
+            mainRenderFBO(LIGHT_MAP) blit transitFBO
             steps.clear()
-            steps.add(PostProcessStep(transiteFBO.fboTexture!!, null,
+            steps.add(PostProcessStep(transitFBO.fboTexture!!, null,
                        GameConst.BLUR_EFFECT or GameConst.CONTRAST_CHARGE_EFFECT,
                         object : HashMap<String, Any>() {
                             init {
@@ -537,15 +529,15 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
             renderPostEffectsBuffer(hBlurFBO, steps)
         }
 
-        mainRenderFBO(COLOR_BUFFER) blit transiteFBO
+        mainRenderFBO(COLOR_BUFFER) blit transitFBO
 
         steps.clear()
         if (settingsManager.isIn_2D_Mode) {
-            steps.add(PostProcessStep(transiteFBO.fboTexture!!, null, GameConst.NO_POST_EFFECTS))
+            steps.add(PostProcessStep(transitFBO.fboTexture!!, null, GameConst.NO_POST_EFFECTS))
             renderPostEffectsBuffer(null, steps)
         }
         else {
-            steps.add(PostProcessStep(transiteFBO.fboTexture!!, hBlurFBO!!.fboTexture, GameConst.BLOOM_EFFECT))
+            steps.add(PostProcessStep(transitFBO.fboTexture!!, hBlurFBO.fboTexture, GameConst.BLOOM_EFFECT))
             steps.add(PostProcessStep(raysEffectFBO!!.fboTexture!!,null, GameConst.NO_POST_EFFECTS,null,
                                       GL20.GL_ONE))
 
@@ -590,12 +582,12 @@ open class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInt
         shadowMapFBO?.cleanUp()
         reflectionMapFBO?.cleanUp()
         refractionMapFBO?.cleanUp()
-        raysMapFBO?.cleanUp()
+        //raysMapFBO?.cleanUp()
         raysEffectFBO?.cleanUp()
-        mainRenderFBO?.cleanUp()
-        transiteFBO?.cleanUp()
-        transiteFBO2?.cleanUp()
-        hBlurFBO?.cleanUp()
+        mainRenderFBO.cleanUp()
+        transitFBO.cleanUp()
+        //transiteFBO2?.cleanUp()
+        hBlurFBO.cleanUp()
     }
 
     private fun clearObjectsCache() {
@@ -685,7 +677,5 @@ private fun extractGlExtensions(glVersion: GLVersion): String {
 
     return extensions
 }
-
-fun checkDepthTextureExtension() = true //GLES20JniWrapper.glExtensions().contains(UNI_DEPTH_TEXTURE_EXTENSION);
 
 //private const val CAMERA_ZOOM_ANIMATION_DURATION: Long = 1000

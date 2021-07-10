@@ -12,10 +12,26 @@ inline infix fun Float.pow(y: Float) = this.toDouble().pow(y.toDouble()).toFloat
 
 /** Vector3f */
 inline fun Vector3f.toArray() = floatArrayOf(x, y, z, 1f)
+
+infix fun Vector3f.to(dest: FloatArray) {
+    dest[0] = x
+    dest[1] = y
+    dest[2] = z
+    dest[3] = 1f
+}
+
 inline operator fun Vector3f.timesAssign(factor: Float) = this.scale(factor)
 inline operator fun Vector3f.times(factor: Float) = Vector3f(this).scaled(factor)
 inline operator fun Vector3f.plus(offset: Vector3f) = Vector3f(this).relocated(offset)
 inline operator fun Vector3f.unaryMinus() = this.negated()
+
+infix fun Vector3f.cross(right: Vector3f): Vector3f {
+    val result = Vector3f()
+    result.cross(this, right)
+    return result
+}
+
+inline infix fun Vector3f.dot(right: Vector3f) = this.dot(right)
 
 inline fun Vector3f.relocated(offset: Vector3f): Vector3f {
     this.add(offset)
@@ -46,6 +62,12 @@ inline operator fun Vector2f.unaryMinus() = this.negated()
 
 
 inline fun Vector2f.toArray() = floatArrayOf(x, y, 0f)
+
+infix fun Vector2f.to(dest: FloatArray) {
+    dest[0] = x
+    dest[1] = y
+    dest[2] = 0f;
+}
 
 inline fun Vector2f.scaled(factor: Float): Vector2f {
     this.scale(factor)

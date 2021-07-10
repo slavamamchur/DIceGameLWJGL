@@ -9,6 +9,7 @@ class SkyDomeProgram: SkyBoxProgram() {
 
     override fun getVertexShaderResId() = SKYDOME_VERTEX_SHADER
     override fun getFragmentShaderResId() = SKYDOME_FRAGMENT_SHADER
+    override fun getGeometryShaderResId(): String? = null
 
     override fun bindGlobalParams(scene: GLRendererInterface<SceneObjectsTreeItem>) {
         params[LIGHT_COLOUR_PARAM_NAME]?.value = scene.lightSource!!.lightColour.toArray()

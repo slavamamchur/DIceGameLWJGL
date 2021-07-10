@@ -24,23 +24,14 @@ in vec4 vShadowCoord;
 varying float vdiffuse;
 varying float vspecular;
 
-vec3 shadowMapPosition;
-
-/*highp float calcDynamicBias(highp float bias, vec3 normal) {
-    highp float result;
-    highp vec3 nLightPos = normalize(u_lightPositionF);
-    highp float cosTheta = clamp(dot(normal, nLightPos), 0.0, 1.0);
-    result = bias * tan(acos(cosTheta));
-
-    return clamp(result, 0.0, 0.3);
-}
-
-float calcShadowRate(vec2 offset)  {
+/* float calcShadowRate(vec2 offset)  {
     const highp float BIAS = 1.0 / 3840.0;
     return step(shadowMapPosition.z - BIAS, textureProj(uShadowTexture, shadowMapPosition + vec4(offset, 0.00005, 0.0)).r);
 } */
 
-float shadowPCF(vec2 texelSize) {
+vec2 texelSize = vec2(uxPixelOffset, uyPixelOffset);
+
+float shadowPCF(vec3 coords) {
     const int ROW_CNT = 3;
     const float CNT = (ROW_CNT - 1.0) * 0.5;
     const int SQUARE_CNT = ROW_CNT * ROW_CNT;
@@ -48,12 +39,13 @@ float shadowPCF(vec2 texelSize) {
     float shadow = 1.0;
     for (float y = -CNT; y <= CNT; y = y + 1.0) {
         for (float x = -CNT; x <= CNT; x = x + 1.0) {
-            shadow += texture(uShadowTexture, shadowMapPosition + vec3(vec2(x, y) * texelSize, 0.0));
+            vec3 pos = coords + vec3(vec2(x, y) * texelSize, 0.0);
+            shadow += texture(uShadowTexture, pos);
         }
     }
 
     shadow /= SQUARE_CNT;
-    shadow += 0.2;
+    //shadow += 0.2;
 
     return shadow;
 }
@@ -90,14 +82,7 @@ void main()
 {
       vec4 diffuseColor = texture2D(u_TextureUnit, v_Texture);
 
-      //highp float shadowRate = 1.0;
-      //if (vShadowCoord.w > 0.0) {
-      shadowMapPosition = vShadowCoord.xyz;
-      shadowMapPosition.z = min(shadowMapPosition.z, 1.0);
-
-      float shadowRate = shadowPCF(vec2(uxPixelOffset, uyPixelOffset));
-            shadowRate = (shadowRate * (1.0 - u_AmbientRate)) + u_AmbientRate;
-      //}
+      float shadowRate = shadowPCF(vec3(vShadowCoord.xy, min(vShadowCoord.z, 1.0))) * (1.0 - u_AmbientRate) + u_AmbientRate;
 
       vec4 fragColor = calcPhongLightingMolel(diffuseColor, shadowRate, 1.0);
 

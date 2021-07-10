@@ -56,7 +56,7 @@ object PhysicalWorld {
                             old_time = 0L
                             oldNumContacts = 0
 
-                            physicalWorld.removeRigidBody(pObj._body)
+                            physicalWorld.removeRigidBody(pObj._body) //todo: problem withs shadows ??? move to onRollingObjectStop(pObj) ???
                             pObj._body = null
                             gameEventsCallBackListener?.onStopMovingObject(pObj)
 

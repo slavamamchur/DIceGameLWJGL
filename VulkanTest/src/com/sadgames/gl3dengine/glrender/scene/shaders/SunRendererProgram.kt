@@ -15,6 +15,7 @@ class SunRendererProgram : GUIRendererProgram() {
 
     override fun getVertexShaderResId() = SUN_VERTEX_SHADER
     override fun getFragmentShaderResId() = SUN_FRAGMENT_SHADER
+    override fun getGeometryShaderResId(): String? = null
 
     override fun bindMVPMatrix(renderable: AbstractGL3DObject, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
         if (renderable is LensObject)

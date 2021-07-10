@@ -2,7 +2,6 @@ package com.sadgames.gl3dengine.glrender.scene.lights
 
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera
 import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera.Companion.FAR_PLANE
-import com.sadgames.gl3dengine.glrender.scene.camera.GLCamera.Companion.NEAR_PLANE
 import com.sadgames.sysutils.common.*
 import com.sadgames.sysutils.common.MathUtils.*
 import java.lang.Math.toDegrees
@@ -11,48 +10,52 @@ import javax.vecmath.Vector3f
 import javax.vecmath.Vector4f
 import kotlin.math.acos
 import kotlin.math.atan
+import kotlin.properties.Delegates.observable
 
 open class GLLightSource(lightPos: FloatArray, var lightColour: Vector3f, camera: GLCamera) {
 
-    var lightPosInModelSpace = lightPos
-        set(value) {
-            if (!field.contentEquals(value)) {
-                field = value
-                updateLightPosInEyeSpace()
-                position2D = toPosition2D()
-                lightDirection = -Vector3f(value).normalized()
-            }
-        }
+    companion object {
+        @JvmStatic fun getPosByDirection(direction: Vector3f) = Vector3f(direction) * (FAR_PLANE * 100f)
+        @JvmStatic fun getUpDirection(dir: Vector3f) = Vector3f(dir.x, (-dir.x * dir.x - dir.z * dir.z) / dir.y, dir.z)
+        @JvmStatic fun getRightDirection(dir: Vector3f, up: Vector3f) = up cross dir
+    }
 
-    var mCamera = camera
+    var lightPosInModelSpace = FloatArray(4)
         set(value) {
-            field = value
+            lightDirection = Vector3f(value).normalized()
+            up = getUpDirection(lightDirection)
+            /** val check = lightDirection dot up -> check true orthogonal view */
+            getPosByDirection(lightDirection) to field
+
             updateLightPosInEyeSpace()
-            position2D = toPosition2D()
-            value.lightSourceObserver = this
+            toPosition2D(mCamera.cameraPosition)
         }
 
-    var lightPosInEyeSpace: FloatArray? = null
-    val viewMatrix = Mat4x4(FloatArray(16))()
+    var mCamera by observable(camera) { _, _, newValue ->
+        updateLightPosInEyeSpace()
+        toPosition2D(newValue.cameraPosition)
+        newValue.lightSourceObserver = this
+    }
+
+    val lightPosInEyeSpace: FloatArray = FloatArray(4)
+    val position2D: FloatArray = FloatArray(3)
+    val viewMatrix: FloatArray = Mat4x4(FloatArray(16))()
     val projectionMatrix = FloatArray(16)
-    var lightDirection: Vector3f? = null
-    var position2D: FloatArray = FloatArray(3)
+
+    private lateinit var lightDirection: Vector3f
+    private lateinit var up: Vector3f
 
     init {
-        updateLightPosInEyeSpace()
-        position2D = toPosition2D()
-        lightDirection = -Vector3f(lightPosInModelSpace).normalized()
+        lightPosInModelSpace = lightPos
         mCamera.lightSourceObserver = this
     }
 
     fun onCameraViewMatrixChanged() {
         updateLightPosInEyeSpace()
-        position2D = toPosition2D()
+        onCameraProjectionMatrixChanged()
     }
 
-    inline fun onCameraProjectionMatrixChanged() {
-        position2D = toPosition2D()
-    }
+    inline fun onCameraProjectionMatrixChanged() { toPosition2D(mCamera.cameraPosition) }
 
     fun updateViewProjectionMatrix(width: Int, height: Int) {
         updateViewMatrix(true)
@@ -69,9 +72,7 @@ open class GLLightSource(lightPos: FloatArray, var lightColour: Vector3f, camera
                 day.z + (day.z - night.z) / 90f * angle)
     }
 
-    inline fun updateLightPosInEyeSpace() {
-        lightPosInEyeSpace = (Mat4x4(mCamera.viewMatrix) * Vector4f(lightPosInModelSpace)).toArray()
-    }
+    inline fun updateLightPosInEyeSpace() { (Mat4x4(mCamera.viewMatrix) * Vector4f(lightPosInModelSpace)) to lightPosInEyeSpace }
 
     fun toScreenSpace(position: Vector3f, scale: Float) : Vector2f? {
         val model = Mat4x4(FloatArray(16))
@@ -84,22 +85,43 @@ open class GLLightSource(lightPos: FloatArray, var lightColour: Vector3f, camera
         return convertToScreenSpace(Vector3f(0f, 0f, 0f), getMatrix4f((Mat4x4(mCamera.projectionMatrix) * matMV).value))
     }
 
-    inline fun toPosition2D() = (
-        toScreenSpace(Vector3f(lightPosInModelSpace).normalized() * 4.5f + mCamera.cameraPosition,1f) ?:
-        Vector2f(-1000f, -1000f)).toArray()
+    fun toPosition2D(cameraPosition: Vector3f) =
+        (toScreenSpace(Vector3f(lightPosInModelSpace).normalized() * 4.5f + cameraPosition,1f) ?: Vector2f(-1000f, -1000f)) to position2D
 
     protected open fun updateViewMatrix(useGL: Boolean) {
-        Mat4x4(viewMatrix)()
+        if (useGL) {/** classic openGL view matrix  */
+            val right = getRightDirection(lightDirection, up)
 
-        if (useGL) /** classic openGL view matrix  */
-            setLookAtM(viewMatrix, 0, lightPosInModelSpace[0], lightPosInModelSpace[1], lightPosInModelSpace[2],
-                       lightDirection!!.x, lightDirection!!.y, lightDirection!!.z,
-                      0f, 1f, 0f)
+            viewMatrix[0] = right.x
+            viewMatrix[1] = up.x
+            viewMatrix[2] = lightDirection.x
+            viewMatrix[3] = 0.0f
+
+            viewMatrix[4] = right.y
+            viewMatrix[5] = up.y
+            viewMatrix[6] = lightDirection.y
+            viewMatrix[7] = 0.0f
+
+            viewMatrix[8] = right.z
+            viewMatrix[9] = up.z
+            viewMatrix[10] = lightDirection.z
+            viewMatrix[11] = 0.0f
+
+            viewMatrix[12] = 0.0f
+            viewMatrix[13] = 0.0f
+            viewMatrix[14] = 0.0f
+            viewMatrix[15] = 1.0f
+
+            /*setLookAtM(viewMatrix, 0, lightPosInModelSpace[0], lightPosInModelSpace[1], lightPosInModelSpace[2],
+                       0f, 0f, 0f,
+                       up.x, up.y, up.z)*/
+        }
         else { /** set view matrix via pitch/roll angles */
             val center = Vector3f(lightDirection)
-            val pitch = toDegrees(acos(Vector2f(lightDirection!!.x, lightDirection!!.z).length().toDouble())).toFloat()
-            val yaw = toDegrees((atan(lightDirection!!.x / lightDirection!!.z).toDouble())).toFloat() - if (lightDirection!!.z > 0f) 180f else 0f
+            val pitch = toDegrees(acos(Vector2f(center.x, center.z).length().toDouble())).toFloat()
+            val yaw = toDegrees((atan(center.x / center.z).toDouble())).toFloat() - if (center.z > 0f) 180f else 0f
 
+            Mat4x4(viewMatrix)()
             rotateM(viewMatrix, pitch, -yaw, 0f)
             translateM(viewMatrix, 0, center.x, center.y, center.z)
         }
@@ -107,9 +129,9 @@ open class GLLightSource(lightPos: FloatArray, var lightColour: Vector3f, camera
 
     protected open fun updateProjectionMatrix(width: Int, height: Int) {
         Mat4x4(projectionMatrix)()
-        val ratio = (if (width > height) width.toFloat() / height else height.toFloat() / width) * 1.75f
+        val ratio = width.toFloat() / height.toFloat()
 
-        orthoM(projectionMatrix, 0, -ratio, ratio, -1.75f, 1.75f, NEAR_PLANE, FAR_PLANE)
+        orthoM(projectionMatrix, 0, -8f * ratio, 8f * ratio, -10f, 10f, -FAR_PLANE, FAR_PLANE)
     }
 
 }

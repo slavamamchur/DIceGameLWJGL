@@ -7,20 +7,20 @@ import javax.vecmath.Vector3f
 class FixedIsometricCamera(eyeX: Float, eyeY: Float, eyeZ: Float, pitch: Float, yaw: Float, roll: Float):
         GLCamera(eyeX, eyeY, eyeZ, pitch, yaw, roll) {
 
-    override fun rotateX(byAngle: Float) {
-        var angle = byAngle
+    override fun rotateX(angle: Float) {
+        val rAngle: Float
         val cameraPos = Vector3f(cameraPosition)
         val direction = cameraDirection
         val oldPitch = pitch
 
         if (yaw > -45f && yaw <= 45f || yaw in 135f..225f) {
-            angle = if (yaw > -45f && yaw <= 45f) angle else -angle
-            cameraPos.y = cos(angle) * (cameraPos.y - direction.y) - sin(angle) * (cameraPos.z - direction.z) + direction.y
-            cameraPos.z = sin(angle) * (cameraPos.y - direction.y) + cos(angle) * (cameraPos.z - direction.z) + direction.z
+            rAngle = if (yaw > -45f && yaw <= 45f) angle else -angle
+            cameraPos.y = cos(rAngle) * (cameraPos.y - direction.y) - sin(rAngle) * (cameraPos.z - direction.z) + direction.y
+            cameraPos.z = sin(rAngle) * (cameraPos.y - direction.y) + cos(rAngle) * (cameraPos.z - direction.z) + direction.z
         } else {
-            angle = if (yaw <= -45f && yaw >= -89.999f || yaw in 224.999f..270f) -angle else angle
-            cameraPos.x = cos(angle) * (cameraPos.x - direction.x) - sin(angle) * (cameraPos.y - direction.y) + direction.x
-            cameraPos.y = sin(angle) * (cameraPos.x - direction.x) + cos(angle) * (cameraPos.y - direction.y) + direction.y
+            rAngle = if (yaw <= -45f && yaw >= -89.999f || yaw in 224.999f..270f) -angle else angle
+            cameraPos.x = cos(rAngle) * (cameraPos.x - direction.x) - sin(rAngle) * (cameraPos.y - direction.y) + direction.x
+            cameraPos.y = sin(rAngle) * (cameraPos.x - direction.x) + cos(rAngle) * (cameraPos.y - direction.y) + direction.y
         }
 
         directSetPitchByDirection(calcDirectionByPos(cameraPos))
@@ -41,7 +41,5 @@ class FixedIsometricCamera(eyeX: Float, eyeY: Float, eyeZ: Float, pitch: Float, 
     }
 
     override fun rotateZ(angle: Float) {}
-    override fun setPosition(position: Vector3f) {
-        cameraPosition = position
-    }
+    override fun setPosition(position: Vector3f) { cameraPosition = position }
 }

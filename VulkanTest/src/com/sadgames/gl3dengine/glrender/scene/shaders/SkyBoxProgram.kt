@@ -9,6 +9,7 @@ open class SkyBoxProgram: ShadowMapProgram() {
 
     override fun getVertexShaderResId() = SKYBOX_VERTEX_SHADER
     override fun getFragmentShaderResId() = SKYBOX_FRAGMENT_SHADER
+    override fun getGeometryShaderResId(): String? = null
 
     override fun bindMVPMatrix(renderable: AbstractGL3DObject, viewMatrix: FloatArray, projectionMatrix: FloatArray) {
         ///val mVMatrix = viewMatrix.copyOf(viewMatrix.size)

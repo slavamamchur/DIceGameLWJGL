@@ -432,11 +432,11 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
          float framerate = imGui.getIo().getFramerate();
          imGui.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);
 
-         AbstractTexture texture = ((AbstractGL3DObject) Objects.requireNonNull(glScene.getScene().getChild(TERRAIN_MESH_OBJECT))).getGlTexture();
+         AbstractTexture texture = Objects.requireNonNull(glScene.getShadowMapFBO()).getFboTexture();
          float tex_w = texture.getWidth();
          float tex_h = texture.getHeight();
          int tex_id = texture.getTextureId();
-         imGui.image(tex_id, new Vec2(tex_w, tex_h), new Vec2(0,0), new Vec2(1,1), new Vec4(255,255,255,255), new Vec4(255,255,255,128));
+         imGui.image(tex_id, new Vec2(tex_w / 8f, tex_h / 8f), new Vec2(0,0), new Vec2(1,1), new Vec4(255,255,255,255), new Vec4(255,255,255,128));
 
          imGui.end();
 

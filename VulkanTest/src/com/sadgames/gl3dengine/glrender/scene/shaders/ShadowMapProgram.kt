@@ -12,6 +12,7 @@ open class ShadowMapProgram : VBOShaderProgram() {
 
     override fun getVertexShaderResId() = SHADOWMAP_VERTEX_SHADER_DEPTH_SUPPORT
     override fun getFragmentShaderResId() = SHADOWMAP_FRAGMENT_SHADER_DEPTH_SUPPORT
+    //override fun getGeometryShaderResId(): String? = SHADOWMAP_GEOMETRY_SHADER_DEPTH_SUPPORT
 
     override fun bindGlobalParams(scene: GLRendererInterface<SceneObjectsTreeItem>) {}
 

@@ -1,6 +1,7 @@
 package com.sadgames.gl3dengine.glrender;
 
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,7 @@ public  class GLRenderConsts {
         put(GL20.GL_INT, GLParamType.INTEGER_UNIFORM_PARAM);
         put(GL20.GL_SAMPLER_2D, GLParamType.INTEGER_UNIFORM_PARAM);
         put(GL20.GL_SAMPLER_2D_SHADOW, GLParamType.INTEGER_UNIFORM_PARAM);
+        put(GL30.GL_SAMPLER_2D_ARRAY_SHADOW, GLParamType.INTEGER_UNIFORM_PARAM);
         put(GL20.GL_FLOAT, GLParamType.FLOAT_UNIFORM_PARAM);
         put(GL20.GL_FLOAT_MAT4, GLParamType.FLOAT_UNIFORM_MATRIX_PARAM);
         put(GL20.GL_FLOAT_VEC3, GLParamType.FLOAT_UNIFORM_VECTOR_PARAM);
@@ -101,6 +103,8 @@ public  class GLRenderConsts {
     public static final float    DEFAULT_CAMERA_VERTICAL_FOV = 45.0f;
 
     public final static float    WAVE_SPEED             = 0.04f;
+
+    public static final String GL_EXT_CLIP_CULL_DISTANCE = "_cull_distance";
 
     public static final String VERTEXES_PARAM_NAME = "a_Position";
     public static final String TEXELS_PARAM_NAME = "a_Texture";
@@ -176,6 +180,7 @@ public  class GLRenderConsts {
     public static final String SHADOWMAP_VERTEX_SHADER_DEPTH_SUPPORT = "shaders/depth_tex_v_depth_map.glsl";
     public static final String SHADOWMAP_FRAGMENT_SHADER = "shaders/f_depth_map.glsl";
     public static final String SHADOWMAP_FRAGMENT_SHADER_DEPTH_SUPPORT = "shaders/depth_tex_f_depth_map.glsl";
+    public static final String SHADOWMAP_GEOMETRY_SHADER_DEPTH_SUPPORT = "shaders/depth_tex_g_depth_map.glsl";
     public static final String GUI_VERTEX_SHADER = "shaders/gui_vertex.glsl";
     public static final String SUN_VERTEX_SHADER = "shaders/sun_vertex.glsl";
     public static final String GUI_FRAGMENT_SHADER = "shaders/gui_fragment.glsl";

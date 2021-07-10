@@ -9,14 +9,13 @@ import javax.vecmath.Color4f
 @Suppress("LeakingThis", "NOTHING_TO_INLINE")
 abstract class AbstractFBO(var width: Int,
                            var height: Int,
-                           private val clearColor: Color4f,
+                           protected val clearColor: Color4f,
                            protected var hasAdditionalTextures: Boolean = false,
                            attachmentsCnt: Int = 1,
                            protected val isMultiSampled: Boolean = false,
                            protected val isFloat32: Boolean = false) {
 
-    private val fboID: Int = glGenFramebuffers()
-
+    protected val fboID: Int = glGenFramebuffers()
     protected val colorBuffers: ArrayList<Int> = ArrayList()
     protected val blitMask; get() = getBltMask()
 
@@ -27,7 +26,7 @@ abstract class AbstractFBO(var width: Int,
     init {
         glBindFramebuffer(GL_FRAMEBUFFER, fboID)
 
-        for (i in (0 until attachmentsCnt))
+        for (i in 0 until attachmentsCnt)
             colorAttachments += attachTexture(i)
 
         //val error = GL11.glGetError()
@@ -53,7 +52,7 @@ abstract class AbstractFBO(var width: Int,
     protected abstract fun attachTexture(num: Int): AbstractTexture?
     protected abstract fun getBltMask(): Int
 
-    fun bind() {
+    open fun bind() {
         glBindTexture(GL_TEXTURE_2D, 0)
         glBindFramebuffer(GL_FRAMEBUFFER, fboID)
 
