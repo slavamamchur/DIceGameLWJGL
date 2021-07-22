@@ -115,6 +115,7 @@ class GLScene(private val gameEventsCallBackListener: GameEventsCallbackInterfac
         glEnable(GL_MULTISAMPLE)
         glExtensions = extractGlExtensions(extractVersion())
 
+        //glFrontFace(GL_CW)
         glEnable(GL20.GL_CULL_FACE)
 
         loadScene()

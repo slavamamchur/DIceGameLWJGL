@@ -8,7 +8,7 @@ varying float vdiffuse;
 const float nmapTiling = 4.0;
 
 vec4 calcLightColor() {
-      vec3 lightColour = vec3(1.0) * (0.2 + 0.8 * vdiffuse);
+      vec3 lightColour = vec3(1.0) * (0.4 + 0.6 * vdiffuse);
 
       return vec4(lightColour, 1.0);
 }

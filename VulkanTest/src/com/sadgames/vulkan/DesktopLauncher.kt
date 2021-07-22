@@ -105,6 +105,8 @@ object DesktopLauncher {
 
         GL.createCapabilities()
 
+        //GL11.glGetString(GL11.GL_VERSION)
+
         renderer = produceRenderByType(RenderType.GL41_RENDER, GameLogic(TEST_GAME_INSTANCE_ID, DesktopRestApiWrapper))!!
 
         initGUI()

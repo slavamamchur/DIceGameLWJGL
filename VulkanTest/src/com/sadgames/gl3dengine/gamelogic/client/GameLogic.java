@@ -116,6 +116,8 @@ import static com.sadgames.sysutils.common.CommonUtils.waitForGC;
 import static com.sadgames.sysutils.common.LuaUtils.javaList2LuaTable;
 import static com.sadgames.sysutils.common.MathUtils.mulMatOnVec;
 import static org.lwjgl.glfw.GLFW.glfwGetPrimaryMonitor;
+import static org.lwjgl.opengl.GL11.GL_VERSION;
+import static org.lwjgl.opengl.GL11.glGetString;
 
 public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
@@ -427,7 +429,7 @@ public class GameLogic implements GameEventsCallbackInterface, ResourceFinder {
 
          imGui.text("Platform:   %s", Platform.get().getName());
          imGui.text("Runtime:    %s v%s", System.getProperty("java.vm.name"), System.getProperty("java.version"));
-         imGui.text("Renderer:   %s", "OpenGL 4.1");
+         imGui.text("Renderer:   OpenGl v%s", glGetString(GL_VERSION));
          imGui.text("Resolution: %dx%d", res.getX(), res.getY());
          float framerate = imGui.getIo().getFramerate();
          imGui.text("Frame time: %.3f ms (%.1f FPS)", 1_000f / framerate, framerate);

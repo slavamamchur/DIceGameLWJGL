@@ -66,6 +66,7 @@ abstract class AbstractFBO(var width: Int,
         glViewport(0, 0, width, height)
 
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w)
+        glClearDepth(1.0)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
     }
 

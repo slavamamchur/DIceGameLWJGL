@@ -51,7 +51,7 @@ float shadowPCF(vec3 coord) {
                     texture(uShadowTexture, coord + vec3(   0,  1.0, 0) * texelSize)), vec4(0.25));*/
     //ATI hardware
     const ivec2 offsets[4] = ivec2[4](ivec2(-1, 0), ivec2(0, -1), ivec2(1, 0), ivec2(0, 1));
-    return dot(textureGatherOffsets(uShadowTexture, coord.xy, coord.z, offsets), vec4(0.25));
+    return dot(textureGatherOffsets(uShadowTexture, coord.xy, coord.z, offsets), vec4(0.25)); //todo: replace in source with GL_EXTENSION check
 }
 
 vec4 calcLightColor(vec3 nNormal, vec3 nLightvector, float shadowRate) {
